@@ -52,7 +52,8 @@ Fix for correct byte encoding for _CRAM_MD5_AUTH taken from python3.5 imaplib.py
 Fix for correct Python 3 exception handling by Tobias Brink <tobias.brink@gmail.com> August 2015.
 Fix to allow interruptible IDLE command by Tim Peoples <dromedary512@users.sf.net> September 2015.
 Add support for TLS levels by Ben Boeckel <mathstuf@gmail.com> September 2015.
-Fix for shutown exception by Sebastien Gross <seb@chezwam.org> November 2015."""
+Fix for shutown exception by Sebastien Gross <seb@chezwam.org> November 2015.
+Fix unknown string escape sequences by André Auzi <aauzi@free.fr> November 2025."""
 __author__ = "Piers Lauder <piers@janeelix.com>"
 __URL__ = "http://imaplib2.sourceforge.net"
 __license__ = "Python License"
@@ -2466,7 +2467,7 @@ if __name__ == '__main__':
     ('select', ('imaplib2_test2',)),
     ('search', (None, 'SUBJECT', '"IMAP4 test"')),
     ('fetch', ('1:*', '(FLAGS INTERNALDATE RFC822)')),
-    ('store', ('1', 'FLAGS', r'(\Deleted)')),
+    ('store', ('1', 'FLAGS', '(\\Deleted)')),
     ('namespace', ()),
     ('expunge', ()),
     ('recent', ()),
@@ -2571,7 +2572,7 @@ if __name__ == '__main__':
             if not uid: continue
             run('uid', ('FETCH', uid[-1],
                     '(FLAGS INTERNALDATE RFC822.SIZE RFC822.HEADER RFC822.TEXT)'))
-            run('uid', ('STORE', uid[-1], 'FLAGS', r'(\Deleted)'))
+            run('uid', ('STORE', uid[-1], 'FLAGS', '(\\Deleted)'))
             run('expunge', ())
 
         if 'IDLE' in M.capabilities:
@@ -2585,10 +2586,10 @@ if __name__ == '__main__':
             dat = run('fetch', (num, '(FLAGS INTERNALDATE RFC822)'), cb=False)
             M._mesg('fetch %s => %s' % (num, repr(dat)))
             run('idle', (2,))
-            run('store', (num, '-FLAGS', r'(\Seen)'), cb=False),
+            run('store', (num, '-FLAGS', '(\\Seen)'), cb=False),
             dat = run('fetch', (num, '(FLAGS INTERNALDATE RFC822)'), cb=False)
             M._mesg('fetch %s => %s' % (num, repr(dat)))
-            run('uid', ('STORE', num, 'FLAGS', r'(\Deleted)'))
+            run('uid', ('STORE', num, 'FLAGS', '(\\Deleted)'))
             run('expunge', ())
             if idle_intr:
                 M._mesg('HIT CTRL-C to interrupt IDLE')
