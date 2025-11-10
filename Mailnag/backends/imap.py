@@ -87,9 +87,7 @@ class IMAPMailboxBackend(MailboxBackend):
 		return self._conn != None
 
 
-	def list_messages(self,
-                          with_body_text:bool = True
-                          ) -> Iterator[tuple[str, Message, dict[str, Any]]]:
+	def list_messages(self) -> Iterator[tuple[str, Message, dict[str, Any]]]:
 		self._ensure_open()
 		assert self._conn is not None
 		conn = self._conn
@@ -98,11 +96,6 @@ class IMAPMailboxBackend(MailboxBackend):
 			folder_list = ['INBOX']
 		else:
 			folder_list = self.folders
-
-		fetch_parts = 'BODY.PEEK[HEADER]'
-		if with_body_text:
-			fetch_parts += ' BODY.PEEK[TEXT]'
-		fetch_parts = '(' + fetch_parts + ')'
 
 		for folder in folder_list:
 			# select IMAP folder
@@ -117,26 +110,38 @@ class IMAPMailboxBackend(MailboxBackend):
 				logging.debug('Folder %s in status %s | Data: %s', (folder, status, data))
 				continue # Bugfix LP-735071
 			for num in data[0].split():
-				typ, msg_data = conn.uid('FETCH', num, fetch_parts) # header with or without text (without setting READ flag)
+				typ, msg_data = conn.uid('FETCH', num, '(BODY.PEEK[HEADER])') # header (without setting READ flag)
 				logging.debug("Msg data (length=%d):\n%s", len(msg_data),
 					      dbgindent(msg_data))
 				header = None
-				text = None
 				for response_part in msg_data:
 					if isinstance(response_part, tuple):
 						if b'BODY[HEADER]' in response_part[0]:
 							header = email.message_from_bytes(response_part[1])
-						elif b'BODY[TEXT]' in response_part[0]:
-							text = email.message_from_bytes(response_part[1])
-							if text is not None:
-								text = text.as_string()
-							if text is not None:
-								text = text.replace('=\n', '').strip()
 				if header:
-					logging.debug("Msg header:\n%s\nMsg text:\n%s",
-						      dbgindent(header),
-						      dbgindent(text))
-					yield (folder, header, { 'uid' : num.decode("utf-8"), 'folder' : folder, 'body': text })
+					logging.debug("Msg header:\n%s",
+						      dbgindent(header))
+					yield (folder, header, { 'uid' : num.decode("utf-8"), 'folder' : folder, 'backend': self })
+
+	def fetch_text(self, uid: str) -> str:
+		conn = self._connect()
+		
+		typ, msg_data = conn.uid('FETCH', uid.encode('utf-8'), '(BODY.PEEK[TEXT])') # body text (without setting READ flag)
+		logging.debug("Msg data (length=%d):\n%s", len(msg_data),
+			      dbgindent(msg_data))
+		text = []
+		for response_part in msg_data:
+			if isinstance(response_part, tuple):
+				if b'BODY[TEXT]' in response_part[0]:
+					t = email.message_from_bytes(response_part[1])
+					if t is not None:
+						t = t.as_string()
+						t = t.replace('=\n', '')
+						text.append(t)
+		if len(text):
+			return ''.join(text).strip()
+		
+		return None
 
 
 	def request_folders(self) -> list[str]:
