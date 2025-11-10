@@ -1,3 +1,4 @@
+# Copyright 2025 André Auzi <aauzi@free.fr>
 # Copyright 2024 Timo Kankare <timo.kankare@iki.fi>
 # Copyright 2011 - 2019 Patrick Ulbrich <zulu99@gmx.net>
 # Copyright 2007 Marco Ferragina <marco.ferragina@gmail.com>
@@ -100,3 +101,13 @@ def shutdown_existing_instance(wait_for_completion: bool = True) -> None:
 			print('OK')
 		except:
 			print('FAILED')
+
+
+def strlimit(txt: str) -> str:
+        txt = str(txt)
+        return txt[:min(80, len(txt))] + '...'
+
+
+def dbgindent(txt: str) -> str:
+        txt = strlimit(str(txt).strip())
+        return '    ' + '\n    '.join(txt.splitlines())
