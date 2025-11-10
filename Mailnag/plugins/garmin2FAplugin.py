@@ -194,9 +194,7 @@ class Garmin2FAPlugin(Plugin):
 
                 for mail in new_mails:
                         sender = self._get_sender(mail)
-                        uid = mail.flags['uid']
-                        backend = mail.flags['backend']
-                        body = backend.fetch_text(uid)
+                        body = mail.fetch_text()
                         logging.debug("garmin2FA: sender=%s, subject=%s, body:\n%s",
                                       sender, mail.subject,
                                       dbgindent(body))

@@ -1,3 +1,4 @@
+# Copyright 2025 André Auzi <aauzi@free.fr>
 # Copyright 2011 - 2021 Patrick Ulbrich <zulu99@gmx.net>
 # Copyright 2020 Andreas Angerer
 # Copyright 2016, 2018, 2024 Timo Kankare <timo.kankare@iki.fi>
@@ -27,9 +28,11 @@ import os
 import logging
 import hashlib
 
+from io import StringIO
 from configparser import RawConfigParser
 from email.header import decode_header, make_header
 from email.message import Message
+from email.generator import Generator
 from typing import Any, TYPE_CHECKING
 from Mailnag.common.i18n import _
 from Mailnag.common.config import cfg_folder
@@ -38,6 +41,28 @@ if TYPE_CHECKING:
 	from Mailnag.common.accounts import Account
 
 
+def message_text(msg: Message) -> str:
+	"""Extract the text body of the given message.
+	The default method is to flatten the message, skip the header
+	and unfold the long lines.
+	"""
+	fp = StringIO()
+	g = Generator(fp)
+	g.flatten(msg)
+
+	message = fp.getvalue().splitlines()
+
+	# skip header
+	n = 0
+	for line in message:
+		n += 1
+		if not len(line):
+			break
+
+	t = '\n'.join(message[n:])
+	t.replace('=\n', '')
+	return t.strip()
+ 
 #
 # Mail class
 #
@@ -49,6 +74,7 @@ class Mail:
 		sender: tuple[str, str],
 		id: str,
 		account: "Account",
+		uid: str | None,
 		flags: dict[str, Any]
 	):
 		self.datetime = datetime
@@ -57,6 +83,10 @@ class Mail:
 		self.account = account
 		self.id = id
 		self.flags = flags
+		self.uid = uid
+		
+	def fetch_text(self):
+		return self.account.fetch_text(self)
 
 
 #
@@ -82,7 +112,7 @@ class MailCollector:
 				continue
 
 			try:
-				for folder, msg, flags in acc.list_messages():
+				for folder, msg, uid, flags in acc.list_messages():
 					sender, subject, datetime, msgid = self._get_header(msg)
 					id = self._get_id(msgid, acc, folder, sender, subject, datetime)
 				
@@ -94,7 +124,7 @@ class MailCollector:
 					# Also filter duplicates caused by Gmail labels.
 					if id not in mail_ids:
 						mail_list.append(Mail(datetime, subject,
-							sender, id, acc, flags))
+								      sender, id, acc, uid, flags))
 						mail_ids[id] = None
 			except Exception as ex:
 				# Catch exceptions here, so remaining accounts will still be checked 
@@ -103,7 +133,7 @@ class MailCollector:
 				# Re-throw the exception for accounts that support notifications (i.e. imap IDLE),
 				# so the calling idler thread can handle the error and reset the connection if needed (see idlers.py).
 				# NOTE: Idler threads always check single accounts (i.e. len(self._accounts) == 1), 
-				#       so there are no remaining accounts to be checked for now.
+				#	so there are no remaining accounts to be checked for now.
 				if acc.supports_notifications():
 					raise
 				else:

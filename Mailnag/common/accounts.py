@@ -1,3 +1,4 @@
+# Copyright 2025 André Auzi <aauzi@free.fr>
 # Copyright 2011 - 2020 Patrick Ulbrich <zulu99@gmx.net>
 # Copyright 2016 Thomas Haider <t.haider@deprecate.de>
 # Copyright 2016, 2018, 2024 Timo Kankare <timo.kankare@iki.fi>
@@ -37,13 +38,13 @@ from Mailnag.daemon.mails import Mail
 account_defaults = {
 	'enabled'			: '0',
 	'type'				: 'imap',
-	'name'				: '',	
+	'name'				: '',
 	'user'				: '',
 	'password'			: '',
 	'server'			: '',
 	'port'				: '',
 	'ssl'				: '1',
-	'imap'				: '1',	
+	'imap'				: '1',
 	'idle'				: '1',
 	'folder'			: '[]'
 }
@@ -121,18 +122,22 @@ class Account:
 		self._get_backend().close()
 
 
-	# Indicates whether the account 
+	# Indicates whether the account
 	# holds an active existing connection.
 	def is_open(self) -> bool:
 		"""Returns true if the mailbox is opened."""
 		return self._get_backend().is_open()
 
 
-	def list_messages(self) -> Iterator[tuple[str, Message, dict[str, Any]]]:
+	def list_messages(self) -> Iterator[tuple[str, Message, str | None, dict[str, Any]]]:
 		"""Lists unseen messages from the mailbox for this account.
 		Yields a set of tuples (folder, message, flags).
 		"""
 		return self._get_backend().list_messages()
+
+
+	def fetch_text(self, mail: Mail) -> str | None:
+		return self._get_backend().fetch_text(mail)
 
 
 	def supports_notifications(self) -> bool:
@@ -176,8 +181,8 @@ class Account:
 	def mark_as_seen(self, mails: list[Mail]):
 		"""Marks mails as seen."""
 		self._get_backend().mark_as_seen(mails)
-		
-			
+
+
 	def get_id(self) -> str:
 		"""Returns unique id for the account."""
 		# Assumption: The name of the account is unique.
@@ -221,52 +226,52 @@ class AccountManager:
 		self._accounts: list[Account] = []
 		self._removed: list[Account] = []
 		self._secretstore = SecretStore.get_default()
-		
+
 		if self._secretstore is None:
 			logging.warning("Failed to create secretstore - account passwords will be stored in plaintext config file.")
 
-	
+
 	def __len__(self) -> int:
 		"""Returns number of accounts"""
 		return len(self._accounts)
-	
-	
+
+
 	def __iter__(self) -> Iterator[Account]:
 		"""Returns iterator for accounts"""
 		for acc in self._accounts:
 			yield acc
 
-		
+
 	def __contains__(self, item: Account) -> bool:
 		"""Checks if account is in account managers collection."""
 		return (item in self._accounts)
-	
-	
+
+
 	def add(self, account: Account) -> None:
 		"""Adds account to account manager."""
 		self._accounts.append(account)
-	
-	
+
+
 	def remove(self, account: Account) -> None:
 		"""Removes account from account manager."""
 		self._accounts.remove(account)
 		self._removed.append(account)
-	
-	
+
+
 	def clear(self) -> None:
 		"""Removes all accounts."""
 		for acc in self._accounts:
 			self._removed.append(acc)
 		del self._accounts[:]
-	
-	
+
+
 	def to_list(self) -> list[Account]:
 		"""Returns list of accounts."""
 		# Don't pass a ref to the internal accounts list.
 		# (Accounts must be removed via the remove() method only.)
 		return self._accounts[:]
-	
-	
+
+
 	def load_from_cfg(
 		self,
 		cfg: RawConfigParser,
@@ -275,13 +280,13 @@ class AccountManager:
 		"""Loads accounts from configuration."""
 		del self._accounts[:]
 		del self._removed[:]
-		
+
 		i = 1
 		section_name = "account" + str(i)
-		
+
 		while cfg.has_section(section_name):
 			enabled = bool(int(self._get_account_cfg(cfg, section_name, 'enabled')))
-			
+
 			if (not enabled_only) or (enabled_only and enabled):
 				if cfg.has_option(section_name, 'type'):
 					mailbox_type = self._get_account_cfg(cfg, section_name, 'type')
@@ -295,7 +300,7 @@ class AccountManager:
 				options = self._get_cfg_options(cfg, section_name, option_spec)
 
 				# TODO: Getting a password from the secretstore is mailbox specific.
-				#       Not every backend requires a password.
+				#	Not every backend requires a password.
 				user = options.get('user')
 				server = options.get('server')
 				if self._secretstore is not None and user and server:
@@ -313,7 +318,7 @@ class AccountManager:
 
 			i = i + 1
 			section_name = "account" + str(i)
-			
+
 
 	def save_to_cfg(self, cfg: RawConfigParser) -> None:
 		"""Saves accounts to configuration."""
@@ -324,27 +329,27 @@ class AccountManager:
 			cfg.remove_section(section_name)
 			i = i + 1
 			section_name = "account" + str(i)
-		
+
 		# Delete secrets of removed accounts from the secretstore
-		# (it's important to do this before adding accounts, 
+		# (it's important to do this before adding accounts,
 		# in case multiple accounts with the same id exist).
 		if self._secretstore is not None:
 			for acc in self._removed:
 				self._secretstore.remove(self._get_account_id(acc.user, acc.server, acc.imap))
-			
+
 		del self._removed[:]
-		
+
 		# Add accounts
 		i = 1
 		for acc in self._accounts:
 			if acc.oauth2string != '':
 				logging.warning("Saving of OAuth2 based accounts is not supported. Account '%s' skipped." % acc.name)
 				continue
-				
+
 			section_name = "account" + str(i)
-			
+
 			cfg.add_section(section_name)
-			
+
 			cfg.set(section_name, 'enabled', str(int(acc.enabled)))
 			cfg.set(section_name, 'type', acc.mailbox_type)
 			cfg.set(section_name, 'name', acc.name)
@@ -353,7 +358,7 @@ class AccountManager:
 			option_spec = get_mailbox_parameter_specs(acc.mailbox_type)
 
 			# TODO: Storing a password is mailbox specific.
-			#       Not every backend requires a password.
+			#	Not every backend requires a password.
 			if self._secretstore is not None:
 				self._secretstore.set(
 					self._get_account_id(acc.user, acc.server, acc.imap),
@@ -365,13 +370,13 @@ class AccountManager:
 			self._set_cfg_options(cfg, section_name, config, option_spec)
 
 			i = i + 1
-	
-		
+
+
 	def _get_account_id(self, user: str, server: str, is_imap: bool) -> str:
 		# TODO : Introduce account.uuid when rewriting account and backend code
 		return hashlib.md5((user + server + str(is_imap)).encode('utf-8')).hexdigest()
-	
-	
+
+
 	def _get_account_cfg(
 		self,
 		cfg: RawConfigParser,
@@ -428,4 +433,3 @@ class AccountManager:
 			else:
 				value = s.default_value
 			cfg.set(section_name, s.option_name, value)
-

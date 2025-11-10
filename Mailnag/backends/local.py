@@ -1,3 +1,4 @@
+# Copyright 2025 André Auzi <aauzi@free.fr>
 # Copyright 2020 Patrick Ulbrich <zulu99@gmx.net>
 # Copyright 2016, 2024 Timo Kankare <timo.kankare@iki.fi>
 #
@@ -26,6 +27,7 @@ from typing import Any, Iterator, Optional
 
 from Mailnag.backends.base import MailboxBackend
 from Mailnag.common.exceptions import InvalidOperationException
+from Mailnag.daemon.mails import message_text
 
 
 class MBoxBackend(MailboxBackend):
@@ -55,7 +57,7 @@ class MBoxBackend(MailboxBackend):
 		return self._opened
 
 
-	def list_messages(self) -> Iterator[tuple[str, Message, dict[str, Any]]]:
+	def list_messages(self) -> Iterator[tuple[str, Message, str | None, dict[str, Any]]]:
 		"""List unread messages from the mailbox.
 		Yields tuples (folder, message, flags) where folder is always ''.
 		"""
@@ -66,13 +68,28 @@ class MBoxBackend(MailboxBackend):
 		mbox = mailbox.mbox(self._path, create=False)
 		folder = ''
 		try:
-			for msg in mbox:
+			for key, msg in mbox.iteritems():
 				if 'R' not in msg.get_flags():
-					yield (folder, msg, {})
+					yield (folder, msg, str(key), {})
 		finally:
 			mbox.close()
 
 
+	def fetch_text(self, mail: Mail) -> str | None:
+		if self._path is None:
+			raise InvalidOperationException(
+				"Path is not defined for Mbox '{self._name}'"
+			)
+		mbox = mailbox.mbox(self._path, create=False)
+		
+		msg = mbox.get(mail.uid)
+		if msg is not None:
+			return message_text(msg)
+
+		return None
+
+		
+		
 	def request_folders(self) -> list[str]:
 		"""mbox does not suppoert folders."""
 		raise NotImplementedError("mbox does not support folders")
@@ -133,7 +150,7 @@ class MaildirBackend(MailboxBackend):
 		return self._opened
 
 
-	def list_messages(self) -> Iterator[tuple[str, Message, dict[str, Any]]]:
+	def list_messages(self) -> Iterator[tuple[str, Message, str | None, dict[str, Any]]]:
 		"""List unread messages from the mailbox.
 		Yields tuples (folder, message, flags).
 		"""

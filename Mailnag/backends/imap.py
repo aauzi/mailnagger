@@ -36,7 +36,7 @@ import Mailnag.common.imaplib2 as imaplib
 from Mailnag.common.imaplib2 import AUTH
 from Mailnag.common.exceptions import InvalidOperationException
 from Mailnag.common.mutf7 import encode_mutf7, decode_mutf7
-from Mailnag.daemon.mails import Mail
+from Mailnag.daemon.mails import Mail, message_text
 from Mailnag.common.utils import dbgindent
 
 
@@ -87,7 +87,7 @@ class IMAPMailboxBackend(MailboxBackend):
 		return self._conn != None
 
 
-	def list_messages(self) -> Iterator[tuple[str, Message, dict[str, Any]]]:
+	def list_messages(self) -> Iterator[tuple[str, Message, str | None, dict[str, Any]]]:
 		self._ensure_open()
 		assert self._conn is not None
 		conn = self._conn
@@ -121,22 +121,21 @@ class IMAPMailboxBackend(MailboxBackend):
 				if header:
 					logging.debug("Msg header:\n%s",
 						      dbgindent(header))
-					yield (folder, header, { 'uid' : num.decode("utf-8"), 'folder' : folder, 'backend': self })
+					yield (folder, header, num.decode("utf-8"), { 'folder' : folder })
 
-	def fetch_text(self, uid: str) -> str:
+	def fetch_text(self, mail: Mail) -> str | None:
 		conn = self._connect()
 		
-		typ, msg_data = conn.uid('FETCH', uid.encode('utf-8'), '(BODY.PEEK[TEXT])') # body text (without setting READ flag)
+		typ, msg_data = conn.uid('FETCH', mail.uid.encode('utf-8'), '(BODY.PEEK[TEXT])') # body text (without setting READ flag)
 		logging.debug("Msg data (length=%d):\n%s", len(msg_data),
 			      dbgindent(msg_data))
 		text = []
 		for response_part in msg_data:
 			if isinstance(response_part, tuple):
 				if b'BODY[TEXT]' in response_part[0]:
-					t = email.message_from_bytes(response_part[1])
-					if t is not None:
-						t = t.as_string()
-						t = t.replace('=\n', '')
+					msg = email.message_from_bytes(response_part[1])
+					if msg is not None:
+						t = message_text(msg)
 						text.append(t)
 		if len(text):
 			return ''.join(text).strip()

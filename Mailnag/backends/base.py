@@ -1,3 +1,4 @@
+# Copyright 2025 André Auzi <aauzi@free.fr>
 # Copyright 2020 Patrick Ulbrich <zulu99@gmx.net>
 # Copyright 2016, 2024 Timo Kankare <timo.kankare@iki.fi>
 #
@@ -54,9 +55,9 @@ class MailboxBackend(ABC):
 		raise NotImplementedError
 
 	@abstractmethod
-	def list_messages(self) -> Iterator[tuple[str, Message, dict[str, Any]]]:
+	def list_messages(self) -> Iterator[tuple[str, Message, str | None, dict[str, Any]]]:
 		"""Lists unseen messages from the mailbox for this account.
-		Yields tuples (folder, message, flags) for every message.
+		Yields tuples (folder, message, uid, flags) for every message.
 		"""
 		raise NotImplementedError
 
@@ -78,7 +79,7 @@ class MailboxBackend(ABC):
 		This may raise an exception if mailbox does not support this action.
 		"""
 		raise NotImplementedError
-		
+
 	def supports_notifications(self) -> bool:
 		"""Returns True if mailbox supports notifications."""
 		# Default implementation
@@ -105,3 +106,9 @@ class MailboxBackend(ABC):
 		"""
 		raise NotImplementedError
 
+	@abstractmethod
+	def fetch_text(self, mail: Mail) -> str | None:
+		"""Fetches the text body of the message identified by an uid.
+		This should raise an exception if uid is None.
+		"""
+		raise NotImplementedError

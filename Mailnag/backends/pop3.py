@@ -1,3 +1,4 @@
+# Copyright 2025 André Auzi <aauzi@free.fr>
 # Copyright 2011 - 2019 Patrick Ulbrich <zulu99@gmx.net>
 # Copyright 2016, 2024 Timo Kankare <timo.kankare@iki.fi>
 # Copyright 2016 Thomas Haider <t.haider@deprecate.de>
@@ -30,11 +31,11 @@ from typing import Any, Iterator, Optional
 
 from Mailnag.backends.base import MailboxBackend
 from Mailnag.common.exceptions import InvalidOperationException
-
+from Mailnag.daemon.mails import message_text
 
 class POP3MailboxBackend(MailboxBackend):
 	"""Implementation of POP3 mail boxes."""
-	
+
 	def __init__(
 		self,
 		name: str = '',
@@ -59,9 +60,9 @@ class POP3MailboxBackend(MailboxBackend):
 	def open(self) -> None:
 		if self._conn != None:
 			raise InvalidOperationException("Account is aready open")
-				
+
 		conn: Optional[poplib.POP3] = None
-		
+
 		try:
 			if self.ssl:
 				if self.port == '':
@@ -73,12 +74,12 @@ class POP3MailboxBackend(MailboxBackend):
 					conn = poplib.POP3(self.server)
 				else:
 					conn = poplib.POP3(self.server, int(self.port))
-				
+
 				try:
 					conn.stls()
 				except:
 					logging.warning("Using unencrypted connection for account '%s'" % self.name)
-				
+
 			conn.getwelcome()
 			conn.user(self.user)
 			conn.pass_(self.password)
@@ -88,7 +89,7 @@ class POP3MailboxBackend(MailboxBackend):
 					conn.quit()
 			except: pass
 			raise # re-throw exception
-		
+
 		self._conn = conn
 
 
@@ -103,12 +104,12 @@ class POP3MailboxBackend(MailboxBackend):
 				('sock' in self._conn.__dict__)
 
 
-	def list_messages(self) -> Iterator[tuple[str, Message, dict[str, Any]]]:
+	def list_messages(self) -> Iterator[tuple[str, Message, str | None, dict[str, Any]]]:
 		self._ensure_open()
 		assert self._conn is not None
 		conn = self._conn
 		folder = ''
-		
+
 		# number of mails on the server
 		mail_total = len(conn.list()[1])
 		for i in range(1, mail_total + 1): # for each mail
@@ -118,16 +119,61 @@ class POP3MailboxBackend(MailboxBackend):
 			except:
 				logging.debug("Couldn't get POP message.")
 				continue
-			
+
+			uid = None
+			try:
+				# uid of message
+				uid = conn.uidl(i).split()[3]
+			except:
+				logging.debug("Couldn't get POP message uid.")
+
 			# convert list to byte sequence
 			message_bytes = b'\n'.join(message)
-			
+
 			try:
 				msg = email.message_from_bytes(message_bytes)
 			except:
 				logging.debug("Couldn't get msg from POP message.")
 				continue
-			yield (folder, msg, {})
+			yield (folder, msg, uid, {})
+
+	def fetch_text(self, mail: Mail) -> str | None:
+		if mail.uid == None:
+			raise NotImplementedError("POP3 does not support uidl")
+
+		self._ensure_open()
+		assert self._conn is not None
+		conn = self._conn
+
+		for entry in conn.uidl():
+			msgnum, msguid = tuple(entry.split())
+			i = int(msgnum)
+			if mail.uid == msguid:
+				try:
+					# get message size
+					size = int(conn.stat(i)[1])
+				except:
+					logging.debug("Couldn't get msg size from POP.")
+					break
+
+				try:
+					# header plus <size> lines from body
+					message = conn.top(i, size)[1]
+				except:
+					logging.debug("Couldn't get POP message.")
+					break
+
+				message_bytes = b'\n'.join(message)
+
+				try:
+					msg = email.message_from_bytes(message_bytes)
+					return message_text(msg)
+				except:
+					logging.debug("Couldn't get msg from POP message.")
+					break
+
+				break
+		return None
 
 
 	def request_folders(self) -> list[str]:
