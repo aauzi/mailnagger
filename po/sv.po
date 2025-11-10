@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: mailnag\n"
 "Report-Msgid-Bugs-To: https://github.com/tikank/mailnagger/issues\n"
-"POT-Creation-Date: 2024-11-27 20:16+0200\n"
+"POT-Creation-Date: 2025-11-10 12:57+0100\n"
 "PO-Revision-Date: 2020-12-24 02:29+0000\n"
 "Last-Translator: Luna Jernberg <droidbittin@gmail.com>\n"
 "Language-Team: Swedish <https://hosted.weblate.org/projects/mailnag/mailnag/"
@@ -19,6 +19,147 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
 "X-Generator: Weblate 4.4.1-dev\n"
 "X-Launchpad-Export-Date: 2020-06-11 14:44+0000\n"
+
+#: Mailnag/daemon/mails.py:153
+msgid "No subject"
+msgstr "Ämne saknas"
+
+#: Mailnag/plugins/garmin2FAplugin.py:135
+#, fuzzy
+msgid "Garmin 2FA LibNotify Notifications"
+msgstr "LibNotify-aviseringar"
+
+#: Mailnag/plugins/garmin2FAplugin.py:136
+#, fuzzy
+msgid "Shows a popup when Garmin 2FA mails arrive."
+msgstr "Visar en notis på skärmen när nya meddelanden anländer."
+
+#: Mailnag/plugins/garmin2FAplugin.py:203
+msgid "Your Security Passcode"
+msgstr ""
+
+#: Mailnag/plugins/garmin2FAplugin.py:220
+#, python-brace-format
+msgid "📋 Code: {0}"
+msgstr ""
+
+#: Mailnag/plugins/spamfilterplugin.py:67
+msgid "Spam Filter"
+msgstr "Skräpfilter"
+
+#: Mailnag/plugins/spamfilterplugin.py:68
+msgid "Filters out unwanted mails."
+msgstr "Filtrera bort oönskade mail."
+
+#: Mailnag/plugins/spamfilterplugin.py:87
+#, fuzzy
+msgid ""
+"Mailnagger will ignore mails containing at least one of \n"
+"the following words in subject or sender."
+msgstr ""
+"Mailnag kommer att ignorera meddelanden som innehåller minst ett av \n"
+"följande ord i ämne eller avsändare."
+
+#: Mailnag/plugins/soundplugin.py:66
+msgid "Sound Notifications"
+msgstr "Ljudaviseringar"
+
+#: Mailnag/plugins/soundplugin.py:67
+msgid "Plays a sound when new mails arrive."
+msgstr "Spelar upp ett ljud när nya meddelanden anländer."
+
+#: Mailnag/plugins/userscriptplugin.py:60
+msgid "User Script"
+msgstr "Användarskript"
+
+#: Mailnag/plugins/userscriptplugin.py:61
+msgid "Runs an user defined script on mail arrival."
+msgstr "Kör ett användardefinerat skript vid inkommande meddelanden."
+
+#: Mailnag/plugins/userscriptplugin.py:80
+msgid "account"
+msgstr "konto"
+
+#: Mailnag/plugins/userscriptplugin.py:80
+msgid "sender"
+msgstr "avsändare"
+
+#: Mailnag/plugins/userscriptplugin.py:80
+msgid "subject"
+msgstr "ämne"
+
+#: Mailnag/plugins/userscriptplugin.py:81
+#, fuzzy, python-format
+msgid ""
+"The following script will be executed whenever new mails arrive.\n"
+"Mailnagger passes the total count of new mails to this script,\n"
+"followed by %s sequences."
+msgstr ""
+"Följande skript kommer köras när nya meddelanden anländer.\n"
+"Mailnag skickar det totala antalet nya meddelanden till detta skript,\n"
+"följt av sekvenser av %s."
+
+#: Mailnag/plugins/libnotifyplugin.py:117
+msgid "LibNotify Notifications"
+msgstr "LibNotify-aviseringar"
+
+#: Mailnag/plugins/libnotifyplugin.py:118
+msgid "Shows a popup when new mails arrive."
+msgstr "Visar en notis på skärmen när nya meddelanden anländer."
+
+#: Mailnag/plugins/libnotifyplugin.py:133
+msgid "Count of new mails"
+msgstr "Antal nya meddelanden"
+
+#: Mailnag/plugins/libnotifyplugin.py:134
+msgid "Short summary of new mails"
+msgstr "Kort summering av nya meddelanden"
+
+#: Mailnag/plugins/libnotifyplugin.py:135
+msgid "Detailed summary of new mails"
+msgstr "Detaljerad summering av nya meddelanden"
+
+#: Mailnag/plugins/libnotifyplugin.py:136
+msgid "One notification per new mail"
+msgstr "En avisering per nytt meddelande"
+
+#: Mailnag/plugins/libnotifyplugin.py:144
+msgid "Notification mode:"
+msgstr "Aviseringsläge"
+
+#: Mailnag/plugins/libnotifyplugin.py:237
+#: Mailnag/plugins/libnotifyplugin.py:273
+#: Mailnag/plugins/libnotifyplugin.py:310
+#, python-brace-format
+msgid "{0} new mails"
+msgstr "{0} nya meddelanden"
+
+#: Mailnag/plugins/libnotifyplugin.py:239
+#, python-brace-format
+msgid "from {0} and others."
+msgstr "från {0} och andra."
+
+#: Mailnag/plugins/libnotifyplugin.py:241
+#: Mailnag/plugins/libnotifyplugin.py:244
+#, python-brace-format
+msgid "from {0}."
+msgstr "från {0}."
+
+#: Mailnag/plugins/libnotifyplugin.py:243
+#: Mailnag/plugins/libnotifyplugin.py:275
+#: Mailnag/plugins/libnotifyplugin.py:312
+msgid "New mail"
+msgstr "Nytt meddelande"
+
+#: Mailnag/plugins/libnotifyplugin.py:268
+#: Mailnag/plugins/libnotifyplugin.py:270
+#, python-brace-format
+msgid "(and {0} more)"
+msgstr "(och {0} till)"
+
+#: Mailnag/plugins/libnotifyplugin.py:299
+msgid "Mark as read"
+msgstr "Markera som läst"
 
 #: Mailnag/configuration/accountdialog.py:77
 msgid "Mail Account"
@@ -94,131 +235,9 @@ msgstr ""
 msgid "Delete this account:"
 msgstr "Ta bort detta konto:"
 
-#: Mailnag/configuration/plugindialog.py:30
+#: Mailnag/configuration/plugindialog.py:35
 msgid "Plugin Configuration"
 msgstr "Inställning av insticksprogram"
-
-#: Mailnag/daemon/mails.py:135
-msgid "No subject"
-msgstr "Ämne saknas"
-
-#: Mailnag/plugins/spamfilterplugin.py:67
-msgid "Spam Filter"
-msgstr "Skräpfilter"
-
-#: Mailnag/plugins/spamfilterplugin.py:68
-msgid "Filters out unwanted mails."
-msgstr "Filtrera bort oönskade mail."
-
-#: Mailnag/plugins/spamfilterplugin.py:87
-#, fuzzy
-msgid ""
-"Mailnagger will ignore mails containing at least one of \n"
-"the following words in subject or sender."
-msgstr ""
-"Mailnag kommer att ignorera meddelanden som innehåller minst ett av \n"
-"följande ord i ämne eller avsändare."
-
-#: Mailnag/plugins/soundplugin.py:64
-msgid "Sound Notifications"
-msgstr "Ljudaviseringar"
-
-#: Mailnag/plugins/soundplugin.py:65
-msgid "Plays a sound when new mails arrive."
-msgstr "Spelar upp ett ljud när nya meddelanden anländer."
-
-#: Mailnag/plugins/libnotifyplugin.py:114
-msgid "LibNotify Notifications"
-msgstr "LibNotify-aviseringar"
-
-#: Mailnag/plugins/libnotifyplugin.py:115
-msgid "Shows a popup when new mails arrive."
-msgstr "Visar en notis på skärmen när nya meddelanden anländer."
-
-#: Mailnag/plugins/libnotifyplugin.py:130
-msgid "Count of new mails"
-msgstr "Antal nya meddelanden"
-
-#: Mailnag/plugins/libnotifyplugin.py:131
-msgid "Short summary of new mails"
-msgstr "Kort summering av nya meddelanden"
-
-#: Mailnag/plugins/libnotifyplugin.py:132
-msgid "Detailed summary of new mails"
-msgstr "Detaljerad summering av nya meddelanden"
-
-#: Mailnag/plugins/libnotifyplugin.py:133
-msgid "One notification per new mail"
-msgstr "En avisering per nytt meddelande"
-
-#: Mailnag/plugins/libnotifyplugin.py:141
-msgid "Notification mode:"
-msgstr "Aviseringsläge"
-
-#: Mailnag/plugins/libnotifyplugin.py:234
-#: Mailnag/plugins/libnotifyplugin.py:270
-#: Mailnag/plugins/libnotifyplugin.py:307
-#, python-brace-format
-msgid "{0} new mails"
-msgstr "{0} nya meddelanden"
-
-#: Mailnag/plugins/libnotifyplugin.py:236
-#, python-brace-format
-msgid "from {0} and others."
-msgstr "från {0} och andra."
-
-#: Mailnag/plugins/libnotifyplugin.py:238
-#: Mailnag/plugins/libnotifyplugin.py:241
-#, python-brace-format
-msgid "from {0}."
-msgstr "från {0}."
-
-#: Mailnag/plugins/libnotifyplugin.py:240
-#: Mailnag/plugins/libnotifyplugin.py:272
-#: Mailnag/plugins/libnotifyplugin.py:309
-msgid "New mail"
-msgstr "Nytt meddelande"
-
-#: Mailnag/plugins/libnotifyplugin.py:265
-#: Mailnag/plugins/libnotifyplugin.py:267
-#, python-brace-format
-msgid "(and {0} more)"
-msgstr "(och {0} till)"
-
-#: Mailnag/plugins/libnotifyplugin.py:296
-msgid "Mark as read"
-msgstr "Markera som läst"
-
-#: Mailnag/plugins/userscriptplugin.py:60
-msgid "User Script"
-msgstr "Användarskript"
-
-#: Mailnag/plugins/userscriptplugin.py:61
-msgid "Runs an user defined script on mail arrival."
-msgstr "Kör ett användardefinerat skript vid inkommande meddelanden."
-
-#: Mailnag/plugins/userscriptplugin.py:80
-msgid "account"
-msgstr "konto"
-
-#: Mailnag/plugins/userscriptplugin.py:80
-msgid "sender"
-msgstr "avsändare"
-
-#: Mailnag/plugins/userscriptplugin.py:80
-msgid "subject"
-msgstr "ämne"
-
-#: Mailnag/plugins/userscriptplugin.py:81
-#, fuzzy, python-format
-msgid ""
-"The following script will be executed whenever new mails arrive.\n"
-"Mailnagger passes the total count of new mails to this script,\n"
-"followed by %s sequences."
-msgstr ""
-"Följande skript kommer köras när nya meddelanden anländer.\n"
-"Mailnag skickar det totala antalet nya meddelanden till detta skript,\n"
-"följt av sekvenser av %s."
 
 #: Mailnag/configuration/ui/account_widget.ui.h:1
 msgid ""
