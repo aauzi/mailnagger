@@ -1,3 +1,4 @@
+# Copyright 2025 André Auzi <aauzi@free.fr>
 # Copyright 2024 Timo Kankare <timo.kankare@iki.fi>
 # Copyright 2011 - 2019 Patrick Ulbrich <zulu99@gmx.net>
 #
@@ -71,7 +72,10 @@ class App(Gtk.Application):
                 # the launched daemon shuts down 
                 # an already running daemon
                 print("Launching Mailnagger daemon.")
-                subprocess.Popen(os.path.join(BIN_DIR, "mailnagger"))
+                try:
+                    subprocess.Popen(os.path.join(BIN_DIR, "mailnagger"))
+                except:
+                    subprocess.Popen(['/usr/bin/env', 'python3', '-m', 'mailnagger'])
             except Exception as e:
                 print(f"ERROR: Failed to launch Mailnagger daemon: {str(e)}")
         else:

@@ -1,3 +1,4 @@
+# Copyright 2025 André Auzi <aauzi@free.fr>
 # Copyright 2024 Timo Kankare <timo.kankare@iki.fi>
 #
 # This program is free software; you can redistribute it and/or modify
@@ -82,13 +83,16 @@ def get_plugin_paths() -> list[Union[Path, Traversable]]:
 
 def get_locale_path() -> Path:
     """Returns path to translation files."""
+    if Path('./Mailnag').exists() and Path('./locale').exists():
+        return Path('./locale')
+
     for p in [LOCALE_DIR, Path("./locale")]:
         if p.exists():
             return p
+
     return LOCALE_DIR
 
 
 def get_resource_text(module: ModuleType, resource: str) -> str:
     """Returns resource text from module."""
     return files(module).joinpath(resource).read_text()
-
