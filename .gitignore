@@ -10,3 +10,4 @@ Mailnag/plugins/messagingmenuplugin.py
 *.egg-info/
 .python-version
 
+*~
