@@ -1,3 +1,4 @@
+# Copyright 2025 André Auzi <aauzi@free.fr>
 # Copyright 2011 - 2021 Patrick Ulbrich <zulu99@gmx.net>
 # Copyright 2020 Andreas Angerer
 # Copyright 2016, 2024 Timo Kankare <timo.kankare@iki.fi>
@@ -36,6 +37,7 @@ from Mailnag.common.imaplib2 import AUTH
 from Mailnag.common.exceptions import InvalidOperationException
 from Mailnag.common.mutf7 import encode_mutf7, decode_mutf7
 from Mailnag.daemon.mails import Mail
+from Mailnag.common.utils import dbgindent
 
 
 class IMAPMailboxBackend(MailboxBackend):
@@ -85,7 +87,9 @@ class IMAPMailboxBackend(MailboxBackend):
 		return self._conn != None
 
 
-	def list_messages(self) -> Iterator[tuple[str, Message, dict[str, Any]]]:
+	def list_messages(self,
+                          with_body_text:bool = True
+                          ) -> Iterator[tuple[str, Message, dict[str, Any]]]:
 		self._ensure_open()
 		assert self._conn is not None
 		conn = self._conn
@@ -94,6 +98,11 @@ class IMAPMailboxBackend(MailboxBackend):
 			folder_list = ['INBOX']
 		else:
 			folder_list = self.folders
+
+		fetch_parts = 'BODY.PEEK[HEADER]'
+		if with_body_text:
+			fetch_parts += ' BODY.PEEK[TEXT]'
+		fetch_parts = '(' + fetch_parts + ')'
 
 		for folder in folder_list:
 			# select IMAP folder
@@ -108,15 +117,26 @@ class IMAPMailboxBackend(MailboxBackend):
 				logging.debug('Folder %s in status %s | Data: %s', (folder, status, data))
 				continue # Bugfix LP-735071
 			for num in data[0].split():
-				typ, msg_data = conn.uid('FETCH', num, '(BODY.PEEK[HEADER])') # header only (without setting READ flag)
+				typ, msg_data = conn.uid('FETCH', num, fetch_parts) # header with or without text (without setting READ flag)
+				logging.debug("Msg data (length=%d):\n%s", len(msg_data),
+					      dbgindent(msg_data))
+				header = None
+				text = None
 				for response_part in msg_data:
 					if isinstance(response_part, tuple):
-						try:
-							msg = email.message_from_bytes(response_part[1])
-						except:
-							logging.debug("Couldn't get IMAP message.")
-							continue
-						yield (folder, msg, {'uid' : num.decode("utf-8"), 'folder' : folder})
+						if b'BODY[HEADER]' in response_part[0]:
+							header = email.message_from_bytes(response_part[1])
+						elif b'BODY[TEXT]' in response_part[0]:
+							text = email.message_from_bytes(response_part[1])
+							if text is not None:
+								text = text.as_string()
+							if text is not None:
+								text = text.replace('=\n', '').strip()
+				if header:
+					logging.debug("Msg header:\n%s\nMsg text:\n%s",
+						      dbgindent(header),
+						      dbgindent(text))
+					yield (folder, header, { 'uid' : num.decode("utf-8"), 'folder' : folder, 'body': text })
 
 
 	def request_folders(self) -> list[str]:
