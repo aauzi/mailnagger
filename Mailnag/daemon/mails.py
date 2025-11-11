@@ -60,7 +60,7 @@ def message_text(msg: Message) -> str:
 			break
 
 	t = '\n'.join(message[n:])
-	t.replace('=\n', '')
+	t = t.replace('=\n', '')
 	return t.strip()
  
 #
