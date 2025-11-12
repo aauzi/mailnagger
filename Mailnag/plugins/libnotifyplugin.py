@@ -358,9 +358,9 @@ class LibNotifyPlugin(Plugin):
 	) -> None:
 		with self._lock:
 			if action == "default":
-				mailclient = get_default_mail_reader()
+				mailclient = Gio.AppInfo.get_default_for_type("x-scheme-handler/mailto", False)
 				if mailclient is not None:
-					start_subprocess(mailclient)
+					Gio.AppInfo.launch(mailclient)
 
 				# clicking the notification bubble has closed all notifications
 				# so clear the reference array as well. 
@@ -401,19 +401,6 @@ class LibNotifyPlugin(Plugin):
 				if env in desktop_env:
 					return True
 		return False
-
-
-def get_default_mail_reader() -> Optional[str]:
-	mail_reader: Optional[str] = None
-	app_info = Gio.AppInfo.get_default_for_type("x-scheme-handler/mailto", False)
-
-	if app_info is not None:
-		executable = Gio.AppInfo.get_executable(app_info)
-
-		if (executable != None) and (len(executable) > 0):
-			mail_reader = executable
-
-	return mail_reader
 
 
 def ellipsize(str: str, max_len: int) -> str:
