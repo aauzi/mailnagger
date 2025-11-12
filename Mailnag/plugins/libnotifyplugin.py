@@ -46,6 +46,7 @@ NOTIFICATION_MODE_COUNT = '0'
 NOTIFICATION_MODE_SHORT_SUMMARY = '3'
 NOTIFICATION_MODE_SUMMARY = '1'
 NOTIFICATION_MODE_SINGLE = '2'
+NOTIFICATION_MODE_SILENT = '4'
 
 DESKTOP_ENV_VARS_FOR_SUPPORT_TEST = ('XDG_CURRENT_DESKTOP', 'GDMSESSION')
 SUPPORTED_DESKTOP_ENVIRONMENTS = ("gnome", "cinnamon")
@@ -147,7 +148,8 @@ class LibNotifyPlugin(Plugin):
 			(NOTIFICATION_MODE_COUNT,				Gtk.RadioButton(label = _('Count of new mails'))),
 			(NOTIFICATION_MODE_SHORT_SUMMARY,			Gtk.RadioButton(label = _('Short summary of new mails'))),
 			(NOTIFICATION_MODE_SUMMARY,				Gtk.RadioButton(label = _('Detailed summary of new mails'))),
-			(NOTIFICATION_MODE_SINGLE,				Gtk.RadioButton(label = _('One notification per new mail')))
+			(NOTIFICATION_MODE_SINGLE,				Gtk.RadioButton(label = _('One notification per new mail'))),
+			(NOTIFICATION_MODE_SILENT,				Gtk.RadioButton(label = _('Only 2FA notification, when enabled')))
 		]
 
 		box = Gtk.Box()
@@ -204,7 +206,9 @@ class LibNotifyPlugin(Plugin):
 
 				config = self.get_config()
 
-				if config['notification_mode'] == NOTIFICATION_MODE_SINGLE:
+				if config['notification_mode'] == NOTIFICATION_MODE_SILENT:
+					self._notify_2FA_attempts(new_mails, all_mails)
+				elif config['notification_mode'] == NOTIFICATION_MODE_SINGLE:
 					self._notify_single(new_mails, all_mails)
 				else:
 					self._notify_2FA_attempts(new_mails, all_mails)
