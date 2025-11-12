@@ -376,14 +376,15 @@ class LibNotifyPlugin(Plugin):
 				# so remove its reference.
 				del self._notifications[user_data[1]]
 	
-
-	def _get_sender(self, mail: Mail) -> str:
+	@staticmethod
+	def _get_sender(mail: Mail) -> str:
 		name, addr = mail.sender
 		if len(name) > 0: return name
 		else: return addr
 	
 	
-	def _prepend_new_mails(self, new_mails: list[Mail], all_mails: list[Mail]) -> list[Mail]:
+	@staticmethod
+	def _prepend_new_mails(new_mails: list[Mail], all_mails: list[Mail]) -> list[Mail]:
 		# The mail list (all_mails) is sorted by date (mails with most recent 
 		# date on top). New mails with no date or older mails that come in 
 		# delayed won't be listed on top. So if a mail with no or an older date 
@@ -391,7 +392,6 @@ class LibNotifyPlugin(Plugin):
 		# with the most recent date) is re-notified.
 		# To fix that, simply put new mails on top explicitly.	
 		return new_mails + [m for m in all_mails if m not in new_mails]
-
 
 	@staticmethod
 	def _is_supported_environment() -> bool:
