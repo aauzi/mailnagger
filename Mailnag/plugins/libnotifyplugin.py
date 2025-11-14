@@ -56,9 +56,9 @@ plugin_defaults = {
 	'max_visible_mails' : '10',
 	'2FA_notifications' : True,
 	'2FA_providers': [
-		# sender, subject, body text re
-		('Garmin', 'Your Security Passcode',	r'<strong[^>]*>(?P<code>\d+)</strong>'),
-		('Garmin', _('Your Security Passcode'), r'<strong[^>]*>(?P<code>\d+)</strong>'),
+		# enabled, sender, subject, pattern
+		(True, 'Garmin', 'Your Security Passcode',    r'<strong[^>]*>(?P<code>\d+)</strong>'),
+		(True, 'Garmin', _('Your Security Passcode'), r'<strong[^>]*>(?P<code>\d+)</strong>'),
 	],
 }
 
@@ -178,7 +178,6 @@ class LibNotifyPlugin(Plugin):
 		box.pack_start(alignment, False, False, 0)
 
 		self._radio_mapping = radio_mapping
-
 		return box
 
 
@@ -323,27 +322,34 @@ class LibNotifyPlugin(Plugin):
 		subject = mail.subject
 		body = None
 
-		for p in providers:
-			if (sender == p[0] and subject == p[1]):
-				logging.debug("2FA pre-matched : sender=%s, subject=%s",
-					      sender, subject)
+		for (_enabled, _sender, _subject, _pattern) in providers:
+			if not _enabled:
+				continue
 
-				# fetch the body text only when send and subject match
-				# but only once (different regexps may work)
-				if body is None:
-					body = mail.fetch_text()
-				#pipe = Popen(['grep', '-C', '4', '-e', '<strong'],
-				#	     stdin=PIPE, stdout=PIPE)
-				#text, _ = pipe.communicate(input=body.encode('utf-8'))
-				#logging.debug('grep:\n%s', text.decode('utf-8'))
-				m = re.search(p[2], body)
-				if m:
-					code = m.group('code')
-					logging.debug("2FA matched code %s: sender=%s, subject=%s, body:\n%s",
-						      code,
-						      sender, subject,
-						      dbgindent(body))
-					break
+			if sender != _sender:
+				continue
+
+			if subject != _subject:
+				continue
+
+			logging.debug("2FA pre-matched : sender=%s, subject=%s",
+				      sender, subject)
+
+			# fetch the body text only when sender and subject match
+			# but only once (different patterns may need to be tested)
+			if body is None:
+				body = mail.fetch_text()
+
+			m = re.search(_pattern, body)
+			if m is None:
+				continue
+
+			code = m.group('code')
+			logging.debug("2FA matched code %s: sender=%s, subject=%s, body:\n%s",
+				      code,
+				      sender, subject,
+				      dbgindent(body))
+			break
 		else:
 			logging.debug("2FA not matched : sender=%s, subject=%s, body:\n%s",
 				      sender, subject,
