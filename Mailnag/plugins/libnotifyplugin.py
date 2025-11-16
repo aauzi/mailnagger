@@ -42,6 +42,8 @@ from Mailnag.common.subproc import start_subprocess
 from Mailnag.common.exceptions import InvalidOperationException
 from Mailnag.daemon.mails import Mail
 from Mailnag.common.utils import dbgindent
+from mailnagger.resources import get_resource_text
+import Mailnag.plugins
 
 NOTIFICATION_MODE_COUNT = '0'
 NOTIFICATION_MODE_SHORT_SUMMARY = '3'
@@ -143,10 +145,14 @@ class LibNotifyPlugin(Plugin):
 		return True
 
 	def get_config_ui(self) -> Gtk.Box:
+		libnotifyplugin_ui = get_resource_text(
+			Mailnag.plugins,
+			"libnotifyplugin.ui"
+		)
 		builder = Gtk.Builder()
 		builder.set_translation_domain(PACKAGE_NAME)
 
-		builder.add_from_file( os.path.splitext(__file__)[0]+'.ui')
+		builder.add_from_string(libnotifyplugin_ui)
 
 		radio_id_mapping = {
 			NOTIFICATION_MODE_COUNT:		'notification_mode_count',
@@ -555,8 +561,6 @@ class LibNotifyPlugin(Plugin):
 				if env in desktop_env:
 					return True
 		return False
-
-
 
 
 	def _on_close(self, widget: Gtk.Dialog) -> None:
