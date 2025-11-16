@@ -35,6 +35,7 @@ import logging
 from collections.abc import Callable
 from typing import Any, Optional
 from gi.repository import Notify, Gio, Gtk
+from Mailnag.common.dist_cfg import PACKAGE_NAME
 from Mailnag.common.plugins import Plugin, HookTypes
 from Mailnag.common.i18n import _
 from Mailnag.common.subproc import start_subprocess
@@ -142,6 +143,7 @@ class LibNotifyPlugin(Plugin):
 		return True
 	def get_config_ui(self) -> Gtk.Box:
 		builder = Gtk.Builder()
+		builder.set_translation_domain(PACKAGE_NAME)
 
 		builder.add_from_file( os.path.splitext(__file__)[0]+'.ui')
 

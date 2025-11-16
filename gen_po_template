@@ -3,6 +3,7 @@
 # generates a gettext .pot template.
 
 glade_dir=./Mailnag/configuration/ui
+plugins_dir=./Mailnag/plugins
 python_dir=./Mailnag
 pot_file=./po/mailnagger.pot
 
@@ -15,13 +16,13 @@ if [ -f $pot_file ]; then
 fi
 
 # generate string headers of all glade files
-for f in $glade_dir/*.ui ; do
+for f in $glade_dir/*.ui $plugins_dir/*.ui ; do
 	intltool-extract --type=gettext/glade $f
 done
 
 # write template files
 pyfiles=`find $python_dir -iname "*.py" -printf "%p "`
-xgettext $pyfiles $glade_dir/*.h --keyword=_ --keyword=N_ --add-comments="TRANSLATORS:" --from-code=UTF-8 --copyright-holder="2024 Timo Kankare <timo.kankare@iki.fi>" --package-name="Mailnagger" --package-version="2.4.0.dev0" --msgid-bugs-address="https://github.com/tikank/mailnagger/issues" --output=$pot_file
+xgettext $pyfiles $glade_dir/*.h $plugins_dir/*.h --keyword=_ --keyword=N_ --add-comments="TRANSLATORS:" --from-code=UTF-8 --copyright-holder="2024 Timo Kankare <timo.kankare@iki.fi>" --package-name="Mailnagger" --package-version="2.4.0.dev0" --msgid-bugs-address="https://github.com/tikank/mailnagger/issues" --output=$pot_file
 
 # clean up
-rm $glade_dir/*.h
+rm $glade_dir/*.h $plugins_dir/*.h 

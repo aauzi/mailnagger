@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: mailnag\n"
 "Report-Msgid-Bugs-To: https://github.com/tikank/mailnagger/issues\n"
-"POT-Creation-Date: 2025-11-10 12:57+0100\n"
+"POT-Creation-Date: 2025-11-16 17:15+0100\n"
 "PO-Revision-Date: 2019-12-25 19:25+0000\n"
 "Last-Translator: Relaxeaza <Unknown>\n"
 "Language-Team: Brazilian Portuguese <pt_BR@li.org>\n"
@@ -18,146 +18,9 @@ msgstr ""
 "X-Launchpad-Export-Date: 2020-06-11 14:44+0000\n"
 "X-Generator: Launchpad (build b190cebbf563f89e480a8b57f641753c8196bda0)\n"
 
-#: Mailnag/daemon/mails.py:153
+#: Mailnag/daemon/mails.py:183
 msgid "No subject"
 msgstr "Sem assunto"
-
-#: Mailnag/plugins/garmin2FAplugin.py:135
-#, fuzzy
-msgid "Garmin 2FA LibNotify Notifications"
-msgstr "Notificações da LibNotify"
-
-#: Mailnag/plugins/garmin2FAplugin.py:136
-#, fuzzy
-msgid "Shows a popup when Garmin 2FA mails arrive."
-msgstr "Mostra um popup quando chegam novas mensagens."
-
-#: Mailnag/plugins/garmin2FAplugin.py:203
-msgid "Your Security Passcode"
-msgstr ""
-
-#: Mailnag/plugins/garmin2FAplugin.py:220
-#, python-brace-format
-msgid "📋 Code: {0}"
-msgstr ""
-
-#: Mailnag/plugins/spamfilterplugin.py:67
-msgid "Spam Filter"
-msgstr "Filtro de Spam"
-
-#: Mailnag/plugins/spamfilterplugin.py:68
-msgid "Filters out unwanted mails."
-msgstr "Filtra mensagens indesejadas."
-
-#: Mailnag/plugins/spamfilterplugin.py:87
-#, fuzzy
-msgid ""
-"Mailnagger will ignore mails containing at least one of \n"
-"the following words in subject or sender."
-msgstr ""
-"Mailnag ignorará mensagens que contenham pelo menos uma \n"
-"das palavras seguintes no assunto ou remetente."
-
-#: Mailnag/plugins/soundplugin.py:66
-msgid "Sound Notifications"
-msgstr "Notificações de Som"
-
-#: Mailnag/plugins/soundplugin.py:67
-msgid "Plays a sound when new mails arrive."
-msgstr "Toca um som quando novas mensagens chegarem."
-
-#: Mailnag/plugins/userscriptplugin.py:60
-msgid "User Script"
-msgstr "Script de Usuário"
-
-#: Mailnag/plugins/userscriptplugin.py:61
-msgid "Runs an user defined script on mail arrival."
-msgstr "Executa um script definido pelo usuário na chegada de mensagens."
-
-#: Mailnag/plugins/userscriptplugin.py:80
-msgid "account"
-msgstr "conta"
-
-#: Mailnag/plugins/userscriptplugin.py:80
-msgid "sender"
-msgstr "remetente"
-
-#: Mailnag/plugins/userscriptplugin.py:80
-msgid "subject"
-msgstr "assunto"
-
-#: Mailnag/plugins/userscriptplugin.py:81
-#, fuzzy, python-format
-msgid ""
-"The following script will be executed whenever new mails arrive.\n"
-"Mailnagger passes the total count of new mails to this script,\n"
-"followed by %s sequences."
-msgstr ""
-"O script seguinte será executado sempre que cheguarem novas mensagens.\n"
-"Mailnag passa o total novas mensagens para o script,\n"
-"seguido por sequências de %s."
-
-#: Mailnag/plugins/libnotifyplugin.py:117
-msgid "LibNotify Notifications"
-msgstr "Notificações da LibNotify"
-
-#: Mailnag/plugins/libnotifyplugin.py:118
-msgid "Shows a popup when new mails arrive."
-msgstr "Mostra um popup quando chegam novas mensagens."
-
-#: Mailnag/plugins/libnotifyplugin.py:133
-msgid "Count of new mails"
-msgstr "Quantidade de mensagens novas"
-
-#: Mailnag/plugins/libnotifyplugin.py:134
-msgid "Short summary of new mails"
-msgstr "Resumo curto de mensagens novas"
-
-#: Mailnag/plugins/libnotifyplugin.py:135
-msgid "Detailed summary of new mails"
-msgstr "Resumo detalhado de mensagens novas"
-
-#: Mailnag/plugins/libnotifyplugin.py:136
-msgid "One notification per new mail"
-msgstr "Uma notificação por mensagem nova"
-
-#: Mailnag/plugins/libnotifyplugin.py:144
-msgid "Notification mode:"
-msgstr "Modo de notificação:"
-
-#: Mailnag/plugins/libnotifyplugin.py:237
-#: Mailnag/plugins/libnotifyplugin.py:273
-#: Mailnag/plugins/libnotifyplugin.py:310
-#, python-brace-format
-msgid "{0} new mails"
-msgstr "{0} novas mensagens"
-
-#: Mailnag/plugins/libnotifyplugin.py:239
-#, python-brace-format
-msgid "from {0} and others."
-msgstr "de {0} e outros."
-
-#: Mailnag/plugins/libnotifyplugin.py:241
-#: Mailnag/plugins/libnotifyplugin.py:244
-#, python-brace-format
-msgid "from {0}."
-msgstr "de {0}."
-
-#: Mailnag/plugins/libnotifyplugin.py:243
-#: Mailnag/plugins/libnotifyplugin.py:275
-#: Mailnag/plugins/libnotifyplugin.py:312
-msgid "New mail"
-msgstr "Novo mail"
-
-#: Mailnag/plugins/libnotifyplugin.py:268
-#: Mailnag/plugins/libnotifyplugin.py:270
-#, python-brace-format
-msgid "(and {0} more)"
-msgstr "(e mais {0})"
-
-#: Mailnag/plugins/libnotifyplugin.py:299
-msgid "Mark as read"
-msgstr "Marcar como lido"
 
 #: Mailnag/configuration/accountdialog.py:77
 msgid "Mail Account"
@@ -170,6 +33,7 @@ msgstr "opcional"
 #: Mailnag/configuration/accountdialog.py:123
 #: Mailnag/configuration/configwindow.py:88
 #: Mailnag/configuration/configwindow.py:108
+#: Mailnag/plugins/libnotifyplugin.ui.h:14
 msgid "Enabled"
 msgstr "Ativado"
 
@@ -238,6 +102,139 @@ msgstr "Apagar esta conta:"
 #: Mailnag/configuration/plugindialog.py:35
 msgid "Plugin Configuration"
 msgstr "Configuração de Plugin"
+
+#: Mailnag/plugins/userscriptplugin.py:60
+msgid "User Script"
+msgstr "Script de Usuário"
+
+#: Mailnag/plugins/userscriptplugin.py:61
+msgid "Runs an user defined script on mail arrival."
+msgstr "Executa um script definido pelo usuário na chegada de mensagens."
+
+#: Mailnag/plugins/userscriptplugin.py:80
+msgid "account"
+msgstr "conta"
+
+#: Mailnag/plugins/userscriptplugin.py:80
+msgid "sender"
+msgstr "remetente"
+
+#: Mailnag/plugins/userscriptplugin.py:80
+msgid "subject"
+msgstr "assunto"
+
+#: Mailnag/plugins/userscriptplugin.py:81
+#, fuzzy, python-format
+msgid ""
+"The following script will be executed whenever new mails arrive.\n"
+"Mailnagger passes the total count of new mails to this script,\n"
+"followed by %s sequences."
+msgstr ""
+"O script seguinte será executado sempre que cheguarem novas mensagens.\n"
+"Mailnag passa o total novas mensagens para o script,\n"
+"seguido por sequências de %s."
+
+#: Mailnag/plugins/libnotifyplugin.py:61
+msgid "Your Security Passcode"
+msgstr ""
+
+#: Mailnag/plugins/libnotifyplugin.py:131
+msgid "LibNotify Notifications"
+msgstr "Notificações da LibNotify"
+
+#: Mailnag/plugins/libnotifyplugin.py:132
+msgid "Shows a popup when new mails arrive."
+msgstr "Mostra um popup quando chegam novas mensagens."
+
+#: Mailnag/plugins/libnotifyplugin.py:168
+msgid "Notification mode:"
+msgstr "Modo de notificação:"
+
+#: Mailnag/plugins/libnotifyplugin.py:280
+#: Mailnag/plugins/libnotifyplugin.py:316
+#: Mailnag/plugins/libnotifyplugin.py:445
+#, python-brace-format
+msgid "{0} new mails"
+msgstr "{0} novas mensagens"
+
+#: Mailnag/plugins/libnotifyplugin.py:282
+#, python-brace-format
+msgid "from {0} and others."
+msgstr "de {0} e outros."
+
+#: Mailnag/plugins/libnotifyplugin.py:284
+#: Mailnag/plugins/libnotifyplugin.py:287
+#, python-brace-format
+msgid "from {0}."
+msgstr "de {0}."
+
+#: Mailnag/plugins/libnotifyplugin.py:286
+#: Mailnag/plugins/libnotifyplugin.py:318
+#: Mailnag/plugins/libnotifyplugin.py:447
+msgid "New mail"
+msgstr "Novo mail"
+
+#: Mailnag/plugins/libnotifyplugin.py:311
+#: Mailnag/plugins/libnotifyplugin.py:313
+#, python-brace-format
+msgid "(and {0} more)"
+msgstr "(e mais {0})"
+
+#: Mailnag/plugins/libnotifyplugin.py:390
+#, python-brace-format
+msgid "📋 Code: {0}"
+msgstr ""
+
+#: Mailnag/plugins/libnotifyplugin.py:434
+msgid "Mark as read"
+msgstr "Marcar como lido"
+
+#: Mailnag/plugins/libnotifyplugin.py:629
+#, fuzzy
+msgid "Delete this provider:"
+msgstr "Apagar esta conta:"
+
+#: Mailnag/plugins/libnotifyplugin.py:630
+#: Mailnag/plugins/libnotifyplugin.ui.h:1
+#, fuzzy
+msgid "Sender:"
+msgstr "remetente"
+
+#: Mailnag/plugins/libnotifyplugin.py:631
+#: Mailnag/plugins/libnotifyplugin.ui.h:3
+#, fuzzy
+msgid "Subject:"
+msgstr "assunto"
+
+#: Mailnag/plugins/libnotifyplugin.py:632
+#: Mailnag/plugins/libnotifyplugin.ui.h:5
+msgid "Pattern:"
+msgstr ""
+
+#: Mailnag/plugins/spamfilterplugin.py:67
+msgid "Spam Filter"
+msgstr "Filtro de Spam"
+
+#: Mailnag/plugins/spamfilterplugin.py:68
+msgid "Filters out unwanted mails."
+msgstr "Filtra mensagens indesejadas."
+
+#: Mailnag/plugins/spamfilterplugin.py:87
+#, fuzzy
+msgid ""
+"Mailnagger will ignore mails containing at least one of \n"
+"the following words in subject or sender."
+msgstr ""
+"Mailnag ignorará mensagens que contenham pelo menos uma \n"
+"das palavras seguintes no assunto ou remetente."
+
+#: Mailnag/plugins/soundplugin.py:66
+msgid "Sound Notifications"
+msgstr "Notificações de Som"
+
+#: Mailnag/plugins/soundplugin.py:67
+msgid "Plays a sound when new mails arrive."
+msgstr "Toca um som quando novas mensagens chegarem."
 
 #: Mailnag/configuration/ui/account_widget.ui.h:1
 msgid ""
@@ -320,6 +317,83 @@ msgstr "Plugins"
 #: Mailnag/configuration/ui/config_window.ui.h:8
 msgid "Info"
 msgstr ""
+
+#: Mailnag/plugins/libnotifyplugin.ui.h:2
+#, fuzzy
+msgid "Sender"
+msgstr "remetente"
+
+#: Mailnag/plugins/libnotifyplugin.ui.h:4
+#, fuzzy
+msgid "Subject"
+msgstr "assunto"
+
+#: Mailnag/plugins/libnotifyplugin.ui.h:6
+msgid "Pattern"
+msgstr ""
+
+#: Mailnag/plugins/libnotifyplugin.ui.h:7
+msgid "Edit 2FA provider"
+msgstr ""
+
+#: Mailnag/plugins/libnotifyplugin.ui.h:8
+#, fuzzy
+msgid "Enable provider"
+msgstr "Ativado"
+
+#: Mailnag/plugins/libnotifyplugin.ui.h:9
+msgid "Count of new mails"
+msgstr "Quantidade de mensagens novas"
+
+#: Mailnag/plugins/libnotifyplugin.ui.h:10
+msgid "Short summary of new mails"
+msgstr "Resumo curto de mensagens novas"
+
+#: Mailnag/plugins/libnotifyplugin.ui.h:11
+msgid "Detailed summary of new mails"
+msgstr "Resumo detalhado de mensagens novas"
+
+#: Mailnag/plugins/libnotifyplugin.ui.h:12
+msgid "One notification per new mail"
+msgstr "Uma notificação por mensagem nova"
+
+#: Mailnag/plugins/libnotifyplugin.ui.h:13
+#, fuzzy
+msgid "Only 2FA notification, when enabled"
+msgstr "Uma notificação por mensagem nova"
+
+#: Mailnag/plugins/libnotifyplugin.ui.h:15
+msgid "Add 2FA Provider"
+msgstr ""
+
+#: Mailnag/plugins/libnotifyplugin.ui.h:16
+msgid "Remove 2FA Provider"
+msgstr ""
+
+#: Mailnag/plugins/libnotifyplugin.ui.h:17
+msgid "Edit 2FA Provider"
+msgstr ""
+
+#: Mailnag/plugins/libnotifyplugin.ui.h:18
+#, fuzzy
+msgid "2FA notifications"
+msgstr "Notificações de Som"
+
+#: Mailnag/plugins/libnotifyplugin.ui.h:19
+msgid "Enable/disable libnotify 2FA processing"
+msgstr ""
+
+#: Mailnag/plugins/libnotifyplugin.ui.h:20
+msgid "2FA providers"
+msgstr ""
+
+#, fuzzy
+#~ msgid "Garmin 2FA LibNotify Notifications"
+#~ msgstr "Notificações da LibNotify"
+
+#, fuzzy
+#~ msgid "Shows a popup when Garmin 2FA mails arrive."
+#~ msgstr "Mostra um popup quando chegam novas mensagens."
 
 #~ msgid "MessagingMenu"
 #~ msgstr "MessagingMenu"
