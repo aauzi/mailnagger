@@ -141,6 +141,7 @@ class LibNotifyPlugin(Plugin):
 
 	def has_config_ui(self) -> bool:
 		return True
+
 	def get_config_ui(self) -> Gtk.Box:
 		builder = Gtk.Builder()
 		builder.set_translation_domain(PACKAGE_NAME)
@@ -189,7 +190,7 @@ class LibNotifyPlugin(Plugin):
 		return builder.get_object('box1')
 
 	@staticmethod
-	def _eval_2fa_providers(providers):
+	def _eval_2fa_providers(providers: list|str) -> list: 
 		if isinstance(providers,list):
 			return providers
 		if not isinstance(providers,str):
@@ -323,7 +324,7 @@ class LibNotifyPlugin(Plugin):
 		self._notifications['0'].show()
 
 
-	def _notify_2FA_attempts(self, new_mails, all_mails) -> None:
+	def _notify_2FA_attempts(self, new_mails: List[Mail], all_mails: List[Mail]) -> None:
 		self._cleanup_notifications_not_in(all_mails)
 
 		# In single notification mode new mails are
@@ -403,7 +404,7 @@ class LibNotifyPlugin(Plugin):
 		self._notifications[notification_id] = n
 
 
-	def _cleanup_notifications_not_in(self, all_mails) -> None:
+	def _cleanup_notifications_not_in(self, all_mails: List[Mail]) -> None:
 		# Remove notifications for messages not in all_mails:
 		for k, n in list(self._notifications.items()):
 			if hasattr(n, 'mail') and not (n.mail in all_mails):
@@ -412,7 +413,7 @@ class LibNotifyPlugin(Plugin):
 				del self._notifications[k]
 
 
-	def _notify_single(self, new_mails, all_mails):
+	def _notify_single(self, new_mails: List[Mail], all_mails: List[Mail]) -> None:
 		self._cleanup_notifications_not_in(all_mails)
 
 		# In single notification mode new mails are
@@ -558,25 +559,25 @@ class LibNotifyPlugin(Plugin):
 
 
 
-	def _on_close(self, widget):
+	def _on_close(self, widget: Gtk.Dialog) -> None:
 		logging.debug('on_close')
 		self._dialog.hide()
 		self._dialog.response(Gtk.ResponseType.CLOSE)
 
 
-	def _on_btn_cancel_clicked(self, widget):
+	def _on_btn_cancel_clicked(self, widget: Gtk.Button) -> None:
 		logging.debug('on_btn_cancel_clicked')
 		self._dialog.hide()
 		self._dialog.response(Gtk.ResponseType.CANCEL)
 
 
-	def _on_btn_ok_clicked(self, widget):
+	def _on_btn_ok_clicked(self, widget: Gtk.Button) -> None:
 		logging.debug('on_btn_ok_clicked')
 		self._dialog.hide()
 		self._dialog.response(Gtk.ResponseType.OK)
 
 
-	def _on_btn_add_provider_clicked(self, widget):
+	def _on_btn_add_provider_clicked(self, widget: Gtk.ToolButton) -> None:
 		logging.debug('on_btn_add_provider_clicked')
 		b = self._builder
 		d = self._dialog
@@ -600,7 +601,7 @@ class LibNotifyPlugin(Plugin):
 		self._treeview_2FA_providers.grab_focus()
 
 
-	def _get_selected_provider(self):
+	def _get_selected_provider(self) -> None:
 		treeselection = self._treeview_2FA_providers.get_selection()
 		selection = treeselection.get_selected()
 		model, iter = selection
@@ -614,7 +615,7 @@ class LibNotifyPlugin(Plugin):
 		return sender, subject, pattern, model, iter
 
 
-	def _show_confirmation_dialog(self, text):
+	def _show_confirmation_dialog(self, text: str) -> None:
 		message = Gtk.MessageDialog(None, Gtk.DialogFlags.MODAL,
 			Gtk.MessageType.QUESTION, Gtk.ButtonsType.YES_NO, text)
 		resp = message.run()
@@ -623,7 +624,7 @@ class LibNotifyPlugin(Plugin):
 		else: return False
 
 
-	def _on_btn_remove_provider_clicked(self, widget):
+	def _on_btn_remove_provider_clicked(self, widget: Gtk.ToolButton) -> None:
 		logging.debug('on_btn_remove_provider_clicked')
 		sender, subject, pattern, model, iter = self._get_selected_provider()
 		if (iter is None
@@ -648,7 +649,7 @@ class LibNotifyPlugin(Plugin):
 		model.remove(iter)
 
 
-	def _edit_provider(self):
+	def _edit_provider(self) -> None:
 		sender, suject, pattern, model, iter = self._get_selected_provider()
 		if iter is None:
 			return
@@ -670,19 +671,19 @@ class LibNotifyPlugin(Plugin):
 		model.set_value(iter, 3, b.get_object('pattern').get_text())
 
 
-	def _on_btn_edit_provider_clicked(self, widget):
+	def _on_btn_edit_provider_clicked(self, widget: Gtk.ToolButton) -> None:
 		logging.debug('on_btn_edit_provider_clicked')
 		self._edit_provider()
 
 
-	def _on_provider_toggled(self, cell, path):
+	def _on_provider_toggled(self, cell: Gtk.CellRendererToggle, path: Gtk.TreePath) -> None:
 		logging.debug('on_provider_toggled')
 		model = self._liststore_2FA_providers
 		iter = model.get_iter(path)
 		self._liststore_2FA_providers.set_value(iter, 0, not cell.get_active())
 
 
-	def _on_provider_row_activated(self, view, path, column):
+	def _on_provider_row_activated(self, view: Gtk.TreeView, path: Gtk.TreePath, column: Gtk.TreeViewColumn) -> None:
 		logging.debug('on_provider_row_activated')
 
 
