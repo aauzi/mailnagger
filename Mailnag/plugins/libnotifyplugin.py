@@ -48,20 +48,19 @@ NOTIFICATION_MODE_SUMMARY = '1'
 NOTIFICATION_MODE_SINGLE = '2'
 NOTIFICATION_MODE_SILENT = '4'
 
+
 DESKTOP_ENV_VARS_FOR_SUPPORT_TEST = ('XDG_CURRENT_DESKTOP', 'GDMSESSION')
 SUPPORTED_DESKTOP_ENVIRONMENTS = ("gnome", "cinnamon")
 
 plugin_defaults = {
 	'notification_mode' : NOTIFICATION_MODE_SHORT_SUMMARY,
 	'max_visible_mails' : '10',
-	'2FA_notifications' : True,
-	'2FA_providers': [
-		# enabled, sender, subject, pattern
+	'2fa_notifications' : True,
+	'2fa_providers': [
 		(True, 'Garmin', 'Your Security Passcode',    r'<strong[^>]*>(?P<code>\d+)</strong>'),
 		(True, 'Garmin', _('Your Security Passcode'), r'<strong[^>]*>(?P<code>\d+)</strong>'),
 	],
 }
-
 
 class LibNotifyPlugin(Plugin):
 	def __init__(self) -> None:
@@ -141,56 +140,81 @@ class LibNotifyPlugin(Plugin):
 
 	def has_config_ui(self) -> bool:
 		return True
-
-
 	def get_config_ui(self) -> Gtk.Box:
-		radio_mapping = [
-			(NOTIFICATION_MODE_COUNT,				Gtk.RadioButton(label = _('Count of new mails'))),
-			(NOTIFICATION_MODE_SHORT_SUMMARY,			Gtk.RadioButton(label = _('Short summary of new mails'))),
-			(NOTIFICATION_MODE_SUMMARY,				Gtk.RadioButton(label = _('Detailed summary of new mails'))),
-			(NOTIFICATION_MODE_SINGLE,				Gtk.RadioButton(label = _('One notification per new mail'))),
-			(NOTIFICATION_MODE_SILENT,				Gtk.RadioButton(label = _('Only 2FA notification, when enabled')))
-		]
+		builder = Gtk.Builder()
 
-		box = Gtk.Box()
-		box.set_spacing(12)
-		box.set_orientation(Gtk.Orientation.VERTICAL)
+		builder.add_from_file( os.path.splitext(__file__)[0]+'.ui')
 
-		label = Gtk.Label()
+		radio_id_mapping = {
+			NOTIFICATION_MODE_COUNT:		'notification_mode_count',
+			NOTIFICATION_MODE_SHORT_SUMMARY:	'notification_mode_short_summary',
+			NOTIFICATION_MODE_SUMMARY:		'notification_mode_summary',
+			NOTIFICATION_MODE_SINGLE:		'notification_mode_single',
+			NOTIFICATION_MODE_SILENT:		'notification_2FA_only',
+		}
+
+		radio_mapping = []
+
+		for mode in [NOTIFICATION_MODE_COUNT,
+			     NOTIFICATION_MODE_SHORT_SUMMARY,
+			     NOTIFICATION_MODE_SUMMARY,
+			     NOTIFICATION_MODE_SINGLE,
+			     NOTIFICATION_MODE_SILENT,
+			     ]:
+			radio_btn = builder.get_object(radio_id_mapping[mode])
+			radio_mapping.append((mode, radio_btn))
+
+		label = builder.get_object('notification_modes')
 		label.set_markup('<b>%s</b>' % _('Notification mode:'))
-		label.set_alignment(0.0, 0.0)
-		box.pack_start(label, False, False, 0)
 
-		inner_box = Gtk.Box()
-		inner_box.set_spacing(6)
-		inner_box.set_orientation(Gtk.Orientation.VERTICAL)
+		builder.connect_signals({
+			'close':			self._on_close,
+			'btn_cancel_clicked':		self._on_btn_cancel_clicked,
+			'btn_ok_clicked':		self._on_btn_ok_clicked,
+			'btn_add_provider_clicked':	self._on_btn_add_provider_clicked,
+			'btn_remove_provider_clicked':	self._on_btn_remove_provider_clicked,
+			'btn_edit_provider_clicked':	self._on_btn_edit_provider_clicked,
+			'provider_toggled':		self._on_provider_toggled,
+			'provider_row_activated':	self._on_provider_row_activated,
+		})
 
-		last_radio = None
-		for m, r in radio_mapping:
-			if last_radio != None:
-				r.join_group(last_radio)
-			inner_box.pack_start(r, False, False, 0)
-			last_radio = r
-
-		alignment = Gtk.Alignment()
-		alignment.set_padding(0, 6, 18, 0)
-		alignment.add(inner_box)
-		box.pack_start(alignment, False, False, 0)
-
+		self._builder = builder
 		self._radio_mapping = radio_mapping
-		return box
+		self._dialog = builder.get_object('edit_2FA_provider_dialog')
+		self._switch_2FA_notifications = builder.get_object('switch_2FA_notifications')
+		self._liststore_2FA_providers = builder.get_object('liststore_2FA_providers')
+		self._treeview_2FA_providers = builder.get_object('treeview_2FA_providers')
+		return builder.get_object('box1')
+
+	@staticmethod
+	def _eval_2fa_providers(providers):
+		if isinstance(providers,list):
+			return providers
+		if not isinstance(providers,str):
+			return []
+		return eval(providers)
 
 
 	def load_ui_from_config(self, config_ui: Gtk.Widget) -> None:
 		config = self.get_config()
 		radio = [r for m, r in self._radio_mapping if m == config['notification_mode']][0]
 		radio.set_active(True)
+		self._switch_2FA_notifications.set_active(config['2fa_notifications'])
+		providers = self._eval_2fa_providers(config['2fa_providers'])
+		for (_enabled, _sender, _subject, _pattern) in providers:
+			self._liststore_2FA_providers.append([_enabled, _sender, _subject, _pattern])
 
 
 	def save_ui_to_config(self, config_ui: Gtk.Widget) -> None:
 		config = self.get_config()
 		mode = [m for m, r in self._radio_mapping if r.get_active()][0]
 		config['notification_mode'] = mode
+		config['2fa_notifications'] = self._switch_2FA_notifications.get_active()
+		providers = []
+		for row in self._liststore_2FA_providers:
+			providers.append(tuple(row))
+		config['2fa_providers']=providers
+
 
 
 	def _notify_async(self, new_mails: list[Mail], all_mails: list[Mail]) -> None:
@@ -306,10 +330,10 @@ class LibNotifyPlugin(Plugin):
 
 		config = self.get_config()
 
-		if not config['2FA_notifications']:
+		if not config['2fa_notifications']:
 			      return
 
-		providers = config['2FA_providers']
+		providers = self._eval_2fa_providers(config['2fa_providers'])
 		if not len(providers):
 			return
 
@@ -396,8 +420,8 @@ class LibNotifyPlugin(Plugin):
 		config = self.get_config()
 		providers = None
 
-		if config['2FA_notifications']:
-			providers = config['2FA_providers']
+		if config['2fa_notifications']:
+			providers = self._eval_2fa_providers(config['2fa_providers'])
 
 		for mail in new_mails:
 			if (providers is not None and
@@ -528,6 +552,136 @@ class LibNotifyPlugin(Plugin):
 				if env in desktop_env:
 					return True
 		return False
+
+
+
+
+	def _on_close(self, widget):
+		logging.debug('on_close')
+		self._dialog.hide()
+		self._dialog.response(Gtk.ResponseType.CLOSE)
+
+
+	def _on_btn_cancel_clicked(self, widget):
+		logging.debug('on_btn_cancel_clicked')
+		self._dialog.hide()
+		self._dialog.response(Gtk.ResponseType.CANCEL)
+
+
+	def _on_btn_ok_clicked(self, widget):
+		logging.debug('on_btn_ok_clicked')
+		self._dialog.hide()
+		self._dialog.response(Gtk.ResponseType.OK)
+
+
+	def _on_btn_add_provider_clicked(self, widget):
+		logging.debug('on_btn_add_provider_clicked')
+		b = self._builder
+		d = self._dialog
+
+		b.get_object('enable').set_active(False)
+		b.get_object('sender').set_text('')
+		b.get_object('subject').set_text('')
+		b.get_object('pattern').set_text('')
+
+		if d.run() != Gtk.ResponseType.OK:
+			return
+		row = [b.get_object('enable').get_active(),
+		       b.get_object('sender').get_text(),
+		       b.get_object('subject').get_text(),
+		       b.get_object('pattern').get_text()]
+
+		iter = self._liststore_2FA_providers.append(row)
+		model = self._treeview_2FA_providers.get_model()
+		path = model.get_path(iter)
+		self._treeview_2FA_providers.set_cursor(path, None, False)
+		self._treeview_2FA_providers.grab_focus()
+
+
+	def _get_selected_provider(self):
+		treeselection = self._treeview_2FA_providers.get_selection()
+		selection = treeselection.get_selected()
+		model, iter = selection
+		sender = None
+		subject = None
+		pattern = None
+		if iter != None:
+			sender = model.get_value(iter, 1)
+			subject = model.get_value(iter, 2)
+			pattern = model.get_value(iter, 3)
+		return sender, subject, pattern, model, iter
+
+
+	def _show_confirmation_dialog(self, text):
+		message = Gtk.MessageDialog(None, Gtk.DialogFlags.MODAL,
+			Gtk.MessageType.QUESTION, Gtk.ButtonsType.YES_NO, text)
+		resp = message.run()
+		message.destroy()
+		if resp == Gtk.ResponseType.YES: return True
+		else: return False
+
+
+	def _on_btn_remove_provider_clicked(self, widget):
+		logging.debug('on_btn_remove_provider_clicked')
+		sender, subject, pattern, model, iter = self._get_selected_provider()
+		if (iter is None
+		    or not self._show_confirmation_dialog(
+			    _('Delete this provider:') + '\n' +
+				'\n' + _("Sender:") + sender +
+				'\n' + _("Subject:") + subject +
+				'\n' + _("Pattern:") +
+				'\n' + pattern)):
+			return
+
+		# select prev/next account
+		p = model.get_path(iter)
+		if not p.prev():
+			p.next()
+
+		treeselection = self._treeview_2FA_providers.get_selection()
+		treeselection.select_path(p)
+		self._treeview_2FA_providers.grab_focus()
+
+		# remove from treeview
+		model.remove(iter)
+
+
+	def _edit_provider(self):
+		sender, suject, pattern, model, iter = self._get_selected_provider()
+		if iter is None:
+			return
+
+		b = self._builder
+		d = self._dialog
+
+		b.get_object('enable').set_active(model.get_value(iter, 0))
+		b.get_object('sender').set_text(model.get_value(iter, 1))
+		b.get_object('subject').set_text(model.get_value(iter, 2))
+		b.get_object('pattern').set_text(model.get_value(iter, 3))
+
+		if d.run() != Gtk.ResponseType.OK:
+			return
+
+		model.set_value(iter, 0, b.get_object('enable').get_active())
+		model.set_value(iter, 1, b.get_object('sender').get_text())
+		model.set_value(iter, 2, b.get_object('subject').get_text())
+		model.set_value(iter, 3, b.get_object('pattern').get_text())
+
+
+	def _on_btn_edit_provider_clicked(self, widget):
+		logging.debug('on_btn_edit_provider_clicked')
+		self._edit_provider()
+
+
+	def _on_provider_toggled(self, cell, path):
+		logging.debug('on_provider_toggled')
+		model = self._liststore_2FA_providers
+		iter = model.get_iter(path)
+		self._liststore_2FA_providers.set_value(iter, 0, not cell.get_active())
+
+
+	def _on_provider_row_activated(self, view, path, column):
+		logging.debug('on_provider_row_activated')
 
 
 def ellipsize(str: str, max_len: int) -> str:
