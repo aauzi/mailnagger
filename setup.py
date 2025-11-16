@@ -169,6 +169,9 @@ setup(name=PACKAGE_NAME,
         'Mailnag.configuration.desktop': [
             'mailnagger.desktop',
         ],
+        'Mailnag.plugins': [
+            'libnotifyplugin.ui',
+        ]
     },
     entry_points={
         "console_scripts": [
