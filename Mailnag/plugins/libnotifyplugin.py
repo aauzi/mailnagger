@@ -175,6 +175,8 @@ class LibNotifyPlugin(Plugin):
 
 		label = builder.get_object('notification_modes')
 		label.set_markup('<b>%s</b>' % _('Notification mode:'))
+		label = builder.get_object('2fa_providers')
+		label.set_markup('<b>%s</b>' % _('2FA providers'))
 
 		builder.connect_signals({
 			'close':			self._on_close,
@@ -750,6 +752,8 @@ class LibNotifyPlugin(Plugin):
 
 	def _on_provider_row_activated(self, view: Gtk.TreeView, path: Gtk.TreePath, column: Gtk.TreeViewColumn) -> None:
 		logging.debug('on_provider_row_activated')
+		for  id in ('btn_remove_2FA_provider', 'btn_edit_2FA_provider'):
+			self._builder.get_object(id).set_sensitive(True)
 
 
 def ellipsize(str: str, max_len: int) -> str:

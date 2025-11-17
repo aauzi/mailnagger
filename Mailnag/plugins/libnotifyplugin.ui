@@ -3,6 +3,7 @@
 <interface>
   <requires lib="gtk+" version="3.18"/>
   <object class="GtkDialog" id="edit_2FA_provider_dialog">
+    <property name="width-request">480</property>
     <property name="can-focus">False</property>
     <property name="modal">True</property>
     <property name="destroy-with-parent">True</property>
@@ -12,6 +13,8 @@
     <child internal-child="vbox">
       <object class="GtkBox">
         <property name="can-focus">False</property>
+        <property name="margin-start">6</property>
+        <property name="margin-end">6</property>
         <property name="margin-top">12</property>
         <property name="hexpand">True</property>
         <property name="vexpand">True</property>
@@ -67,6 +70,8 @@
             <property name="can-focus">False</property>
             <property name="margin-start">12</property>
             <property name="margin-end">12</property>
+            <property name="row-spacing">11</property>
+            <property name="column-spacing">6</property>
             <child>
               <object class="GtkLabel">
                 <property name="visible">True</property>
@@ -147,8 +152,8 @@
             <property name="can-focus">True</property>
             <property name="margin-left">24</property>
             <property name="margin-right">6</property>
-            <property name="margin-start">24</property>
-            <property name="margin-end">6</property>
+            <property name="margin-start">36</property>
+            <property name="margin-top">6</property>
             <property name="hexpand">True</property>
             <property name="vexpand">True</property>
             <property name="placeholder-text" translatable="yes">Pattern</property>
@@ -211,6 +216,7 @@
     </columns>
   </object>
   <object class="GtkBox" id="box1">
+    <property name="width-request">480</property>
     <property name="visible">True</property>
     <property name="can-focus">False</property>
     <property name="orientation">vertical</property>
@@ -316,6 +322,7 @@
     </child>
     <child>
       <object class="GtkExpander" id="2FA-providers">
+        <property name="width-request">-1</property>
         <property name="visible">True</property>
         <property name="can-focus">False</property>
         <property name="label-fill">True</property>
@@ -433,6 +440,7 @@
                     <child>
                       <object class="GtkToolButton" id="btn_remove_2FA_provider">
                         <property name="visible">True</property>
+                        <property name="sensitive">False</property>
                         <property name="can-focus">False</property>
                         <property name="label" translatable="yes">Remove 2FA Provider</property>
                         <property name="icon-name">list-remove-symbolic</property>
@@ -446,6 +454,7 @@
                     <child>
                       <object class="GtkToolButton" id="btn_edit_2FA_provider">
                         <property name="visible">True</property>
+                        <property name="sensitive">False</property>
                         <property name="can-focus">False</property>
                         <property name="label" translatable="yes">Edit 2FA Provider</property>
                         <property name="icon-name">text-editor-symbolic</property>
@@ -508,9 +517,10 @@
           </object>
         </child>
         <child type="label">
-          <object class="GtkLabel" id="2FA_provider">
+          <object class="GtkLabel" id="2fa_providers">
             <property name="can-focus">False</property>
-            <property name="label" translatable="yes">2FA providers</property>
+            <property name="label">&lt;b&gt;2FA providers&lt;/b&gt;</property>
+            <property name="use-markup">True</property>
           </object>
         </child>
       </object>
