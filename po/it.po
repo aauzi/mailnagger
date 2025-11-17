@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: mailnag\n"
 "Report-Msgid-Bugs-To: https://github.com/tikank/mailnagger/issues\n"
-"POT-Creation-Date: 2025-11-16 17:15+0100\n"
+"POT-Creation-Date: 2025-11-17 21:03+0100\n"
 "PO-Revision-Date: 2020-10-15 17:26+0000\n"
 "Last-Translator: J. Lavoie <j.lavoie@net-c.ca>\n"
 "Language-Team: Italian <https://hosted.weblate.org/projects/mailnag/mailnag/"
@@ -135,79 +135,83 @@ msgstr ""
 "Mailnag passa il conteggio totale dei nuovi messaggi a questo script,\n"
 "seguito da %s sequenze."
 
-#: Mailnag/plugins/libnotifyplugin.py:61
+#: Mailnag/plugins/libnotifyplugin.py:64
 msgid "Your Security Passcode"
 msgstr ""
 
-#: Mailnag/plugins/libnotifyplugin.py:131
+#: Mailnag/plugins/libnotifyplugin.py:134
 msgid "LibNotify Notifications"
 msgstr "Notifiche LibNotify"
 
-#: Mailnag/plugins/libnotifyplugin.py:132
+#: Mailnag/plugins/libnotifyplugin.py:135
 msgid "Shows a popup when new mails arrive."
 msgstr "Mostra un popup all'arrivo di nuove e-mail."
 
-#: Mailnag/plugins/libnotifyplugin.py:168
+#: Mailnag/plugins/libnotifyplugin.py:177
 msgid "Notification mode:"
 msgstr "Modalità di notifica:"
 
-#: Mailnag/plugins/libnotifyplugin.py:280
-#: Mailnag/plugins/libnotifyplugin.py:316
-#: Mailnag/plugins/libnotifyplugin.py:445
+#: Mailnag/plugins/libnotifyplugin.py:179
+msgid "2FA providers"
+msgstr ""
+
+#: Mailnag/plugins/libnotifyplugin.py:322
+#: Mailnag/plugins/libnotifyplugin.py:358
+#: Mailnag/plugins/libnotifyplugin.py:487
 #, python-brace-format
 msgid "{0} new mails"
 msgstr "{0} nuove e-mail"
 
-#: Mailnag/plugins/libnotifyplugin.py:282
+#: Mailnag/plugins/libnotifyplugin.py:324
 #, python-brace-format
 msgid "from {0} and others."
 msgstr "da {0} e altri."
 
-#: Mailnag/plugins/libnotifyplugin.py:284
-#: Mailnag/plugins/libnotifyplugin.py:287
+#: Mailnag/plugins/libnotifyplugin.py:326
+#: Mailnag/plugins/libnotifyplugin.py:329
 #, python-brace-format
 msgid "from {0}."
 msgstr "da {0}."
 
-#: Mailnag/plugins/libnotifyplugin.py:286
-#: Mailnag/plugins/libnotifyplugin.py:318
-#: Mailnag/plugins/libnotifyplugin.py:447
+#: Mailnag/plugins/libnotifyplugin.py:328
+#: Mailnag/plugins/libnotifyplugin.py:360
+#: Mailnag/plugins/libnotifyplugin.py:489
 msgid "New mail"
 msgstr "Nuova e-mail"
 
-#: Mailnag/plugins/libnotifyplugin.py:311
-#: Mailnag/plugins/libnotifyplugin.py:313
+#: Mailnag/plugins/libnotifyplugin.py:353
+#: Mailnag/plugins/libnotifyplugin.py:355
 #, python-brace-format
 msgid "(and {0} more)"
 msgstr "(e altri {0})"
 
-#: Mailnag/plugins/libnotifyplugin.py:390
+#: Mailnag/plugins/libnotifyplugin.py:432
 #, python-brace-format
 msgid "📋 Code: {0}"
 msgstr ""
 
-#: Mailnag/plugins/libnotifyplugin.py:434
+#: Mailnag/plugins/libnotifyplugin.py:476
 msgid "Mark as read"
 msgstr "Contrassegna come \\\"già letto\\\""
 
-#: Mailnag/plugins/libnotifyplugin.py:629
+#: Mailnag/plugins/libnotifyplugin.py:675
 #, fuzzy
 msgid "Delete this provider:"
 msgstr "Eliminare questo account:"
 
-#: Mailnag/plugins/libnotifyplugin.py:630
+#: Mailnag/plugins/libnotifyplugin.py:676
 #: Mailnag/plugins/libnotifyplugin.ui.h:1
 #, fuzzy
 msgid "Sender:"
 msgstr "Mittente"
 
-#: Mailnag/plugins/libnotifyplugin.py:631
+#: Mailnag/plugins/libnotifyplugin.py:677
 #: Mailnag/plugins/libnotifyplugin.ui.h:3
 #, fuzzy
 msgid "Subject:"
 msgstr "Oggetto"
 
-#: Mailnag/plugins/libnotifyplugin.py:632
+#: Mailnag/plugins/libnotifyplugin.py:678
 #: Mailnag/plugins/libnotifyplugin.ui.h:5
 msgid "Pattern:"
 msgstr ""
@@ -383,10 +387,6 @@ msgstr "Notifiche audio"
 
 #: Mailnag/plugins/libnotifyplugin.ui.h:19
 msgid "Enable/disable libnotify 2FA processing"
-msgstr ""
-
-#: Mailnag/plugins/libnotifyplugin.ui.h:20
-msgid "2FA providers"
 msgstr ""
 
 #, fuzzy

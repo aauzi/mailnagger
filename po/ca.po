@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: mailnag\n"
 "Report-Msgid-Bugs-To: https://github.com/tikank/mailnagger/issues\n"
-"POT-Creation-Date: 2025-11-16 17:15+0100\n"
+"POT-Creation-Date: 2025-11-17 21:03+0100\n"
 "PO-Revision-Date: 2020-04-05 12:44+0000\n"
 "Last-Translator: Marc Riera Irigoyen <marcriera@softcatala.org>\n"
 "Language-Team: Catalan <ca@li.org>\n"
@@ -131,79 +131,83 @@ msgstr ""
 "El Mailnag passa el nombre total de correus nous a aquest script,\n"
 "seguit de seqüències %s."
 
-#: Mailnag/plugins/libnotifyplugin.py:61
+#: Mailnag/plugins/libnotifyplugin.py:64
 msgid "Your Security Passcode"
 msgstr ""
 
-#: Mailnag/plugins/libnotifyplugin.py:131
+#: Mailnag/plugins/libnotifyplugin.py:134
 msgid "LibNotify Notifications"
 msgstr "Notificacions del LibNotify"
 
-#: Mailnag/plugins/libnotifyplugin.py:132
+#: Mailnag/plugins/libnotifyplugin.py:135
 msgid "Shows a popup when new mails arrive."
 msgstr "Mostra una finestra emergent quan arriben correus nous."
 
-#: Mailnag/plugins/libnotifyplugin.py:168
+#: Mailnag/plugins/libnotifyplugin.py:177
 msgid "Notification mode:"
 msgstr "Mode de notificació:"
 
-#: Mailnag/plugins/libnotifyplugin.py:280
-#: Mailnag/plugins/libnotifyplugin.py:316
-#: Mailnag/plugins/libnotifyplugin.py:445
+#: Mailnag/plugins/libnotifyplugin.py:179
+msgid "2FA providers"
+msgstr ""
+
+#: Mailnag/plugins/libnotifyplugin.py:322
+#: Mailnag/plugins/libnotifyplugin.py:358
+#: Mailnag/plugins/libnotifyplugin.py:487
 #, python-brace-format
 msgid "{0} new mails"
 msgstr "{0} correus nous"
 
-#: Mailnag/plugins/libnotifyplugin.py:282
+#: Mailnag/plugins/libnotifyplugin.py:324
 #, python-brace-format
 msgid "from {0} and others."
 msgstr "de {0} i altres."
 
-#: Mailnag/plugins/libnotifyplugin.py:284
-#: Mailnag/plugins/libnotifyplugin.py:287
+#: Mailnag/plugins/libnotifyplugin.py:326
+#: Mailnag/plugins/libnotifyplugin.py:329
 #, python-brace-format
 msgid "from {0}."
 msgstr "de {0}."
 
-#: Mailnag/plugins/libnotifyplugin.py:286
-#: Mailnag/plugins/libnotifyplugin.py:318
-#: Mailnag/plugins/libnotifyplugin.py:447
+#: Mailnag/plugins/libnotifyplugin.py:328
+#: Mailnag/plugins/libnotifyplugin.py:360
+#: Mailnag/plugins/libnotifyplugin.py:489
 msgid "New mail"
 msgstr "Correu nou"
 
-#: Mailnag/plugins/libnotifyplugin.py:311
-#: Mailnag/plugins/libnotifyplugin.py:313
+#: Mailnag/plugins/libnotifyplugin.py:353
+#: Mailnag/plugins/libnotifyplugin.py:355
 #, python-brace-format
 msgid "(and {0} more)"
 msgstr "(i {0} més)"
 
-#: Mailnag/plugins/libnotifyplugin.py:390
+#: Mailnag/plugins/libnotifyplugin.py:432
 #, python-brace-format
 msgid "📋 Code: {0}"
 msgstr ""
 
-#: Mailnag/plugins/libnotifyplugin.py:434
+#: Mailnag/plugins/libnotifyplugin.py:476
 msgid "Mark as read"
 msgstr "Marca com a llegit"
 
-#: Mailnag/plugins/libnotifyplugin.py:629
+#: Mailnag/plugins/libnotifyplugin.py:675
 #, fuzzy
 msgid "Delete this provider:"
 msgstr "Suprimeix aquest compte:"
 
-#: Mailnag/plugins/libnotifyplugin.py:630
+#: Mailnag/plugins/libnotifyplugin.py:676
 #: Mailnag/plugins/libnotifyplugin.ui.h:1
 #, fuzzy
 msgid "Sender:"
 msgstr "remitent"
 
-#: Mailnag/plugins/libnotifyplugin.py:631
+#: Mailnag/plugins/libnotifyplugin.py:677
 #: Mailnag/plugins/libnotifyplugin.ui.h:3
 #, fuzzy
 msgid "Subject:"
 msgstr "assumpte"
 
-#: Mailnag/plugins/libnotifyplugin.py:632
+#: Mailnag/plugins/libnotifyplugin.py:678
 #: Mailnag/plugins/libnotifyplugin.ui.h:5
 msgid "Pattern:"
 msgstr ""
@@ -379,10 +383,6 @@ msgstr "Notificacions sonores"
 
 #: Mailnag/plugins/libnotifyplugin.ui.h:19
 msgid "Enable/disable libnotify 2FA processing"
-msgstr ""
-
-#: Mailnag/plugins/libnotifyplugin.ui.h:20
-msgid "2FA providers"
 msgstr ""
 
 #, fuzzy

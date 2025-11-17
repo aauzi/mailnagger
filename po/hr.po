@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: mailnag\n"
 "Report-Msgid-Bugs-To: https://github.com/tikank/mailnagger/issues\n"
-"POT-Creation-Date: 2025-11-16 17:15+0100\n"
+"POT-Creation-Date: 2025-11-17 21:03+0100\n"
 "PO-Revision-Date: 2021-01-18 00:35+0000\n"
 "Last-Translator: Milo Ivir <mail@milotype.de>\n"
 "Language-Team: Croatian <https://hosted.weblate.org/projects/mailnag/mailnag/"
@@ -138,79 +138,83 @@ msgstr ""
 "Mailnag prosljeđuje ukupan broj novih e-poruka ovoj skripti,\n"
 "nakon čega slijede %s sekvence."
 
-#: Mailnag/plugins/libnotifyplugin.py:61
+#: Mailnag/plugins/libnotifyplugin.py:64
 msgid "Your Security Passcode"
 msgstr ""
 
-#: Mailnag/plugins/libnotifyplugin.py:131
+#: Mailnag/plugins/libnotifyplugin.py:134
 msgid "LibNotify Notifications"
 msgstr "LibNotify oznake"
 
-#: Mailnag/plugins/libnotifyplugin.py:132
+#: Mailnag/plugins/libnotifyplugin.py:135
 msgid "Shows a popup when new mails arrive."
 msgstr "Prikazuje skočni prozor po primanju novih e-poruka."
 
-#: Mailnag/plugins/libnotifyplugin.py:168
+#: Mailnag/plugins/libnotifyplugin.py:177
 msgid "Notification mode:"
 msgstr "Modus obavještavanja:"
 
-#: Mailnag/plugins/libnotifyplugin.py:280
-#: Mailnag/plugins/libnotifyplugin.py:316
-#: Mailnag/plugins/libnotifyplugin.py:445
+#: Mailnag/plugins/libnotifyplugin.py:179
+msgid "2FA providers"
+msgstr ""
+
+#: Mailnag/plugins/libnotifyplugin.py:322
+#: Mailnag/plugins/libnotifyplugin.py:358
+#: Mailnag/plugins/libnotifyplugin.py:487
 #, python-brace-format
 msgid "{0} new mails"
 msgstr "Broj novih e-poruka: {0}"
 
-#: Mailnag/plugins/libnotifyplugin.py:282
+#: Mailnag/plugins/libnotifyplugin.py:324
 #, python-brace-format
 msgid "from {0} and others."
 msgstr "od {0} i drugih."
 
-#: Mailnag/plugins/libnotifyplugin.py:284
-#: Mailnag/plugins/libnotifyplugin.py:287
+#: Mailnag/plugins/libnotifyplugin.py:326
+#: Mailnag/plugins/libnotifyplugin.py:329
 #, python-brace-format
 msgid "from {0}."
 msgstr "od {0}."
 
-#: Mailnag/plugins/libnotifyplugin.py:286
-#: Mailnag/plugins/libnotifyplugin.py:318
-#: Mailnag/plugins/libnotifyplugin.py:447
+#: Mailnag/plugins/libnotifyplugin.py:328
+#: Mailnag/plugins/libnotifyplugin.py:360
+#: Mailnag/plugins/libnotifyplugin.py:489
 msgid "New mail"
 msgstr "Nova e-poruka"
 
-#: Mailnag/plugins/libnotifyplugin.py:311
-#: Mailnag/plugins/libnotifyplugin.py:313
+#: Mailnag/plugins/libnotifyplugin.py:353
+#: Mailnag/plugins/libnotifyplugin.py:355
 #, python-brace-format
 msgid "(and {0} more)"
 msgstr "(i još {0})"
 
-#: Mailnag/plugins/libnotifyplugin.py:390
+#: Mailnag/plugins/libnotifyplugin.py:432
 #, python-brace-format
 msgid "📋 Code: {0}"
 msgstr ""
 
-#: Mailnag/plugins/libnotifyplugin.py:434
+#: Mailnag/plugins/libnotifyplugin.py:476
 msgid "Mark as read"
 msgstr "Označi kao pročitano"
 
-#: Mailnag/plugins/libnotifyplugin.py:629
+#: Mailnag/plugins/libnotifyplugin.py:675
 #, fuzzy
 msgid "Delete this provider:"
 msgstr "Izbriši ovaj račun:"
 
-#: Mailnag/plugins/libnotifyplugin.py:630
+#: Mailnag/plugins/libnotifyplugin.py:676
 #: Mailnag/plugins/libnotifyplugin.ui.h:1
 #, fuzzy
 msgid "Sender:"
 msgstr "pošiljatelj"
 
-#: Mailnag/plugins/libnotifyplugin.py:631
+#: Mailnag/plugins/libnotifyplugin.py:677
 #: Mailnag/plugins/libnotifyplugin.ui.h:3
 #, fuzzy
 msgid "Subject:"
 msgstr "predmet"
 
-#: Mailnag/plugins/libnotifyplugin.py:632
+#: Mailnag/plugins/libnotifyplugin.py:678
 #: Mailnag/plugins/libnotifyplugin.ui.h:5
 msgid "Pattern:"
 msgstr ""
@@ -386,10 +390,6 @@ msgstr "Obavještavanje zvukom"
 
 #: Mailnag/plugins/libnotifyplugin.ui.h:19
 msgid "Enable/disable libnotify 2FA processing"
-msgstr ""
-
-#: Mailnag/plugins/libnotifyplugin.ui.h:20
-msgid "2FA providers"
 msgstr ""
 
 #, fuzzy
