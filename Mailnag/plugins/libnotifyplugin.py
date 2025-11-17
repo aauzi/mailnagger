@@ -196,12 +196,41 @@ class LibNotifyPlugin(Plugin):
 		return builder.get_object('box1')
 
 	@staticmethod
-	def _eval_2fa_providers(providers: list|str) -> list: 
+	def _eval_2fa_providers(providers: list|str) -> list:
 		if isinstance(providers,list):
 			return providers
 		if not isinstance(providers,str):
 			return []
 		return eval(providers)
+
+	@staticmethod
+	def _check_2fa_provider_pattern(sender: str, subject: str, pattern: str) -> bool:
+		ret = True
+		if not '(?P<code>' in pattern:
+			ret = False
+			logging.error('missing "code" group pattern: (?P<code>...\n'+
+				      'sender: %s, subject: %s\npattern:\n%s',
+				      sender, subject,
+				      pattern)
+		if ret:
+			try:
+				_cre = re.compile(pattern)
+			except re.PatternError as e:
+				ret = False
+				posi = ''
+				if 'pos' in e.__dict__ and e.pos is not None:
+					posi = '^'
+					i = e.pos
+					while i > 0:
+						i -= 1
+						posi = ' ' + posi
+					posi = '\n' + posi
+				logging.error('pattern is incorrect regexp:\n'+
+					      'sender: %s, subject: %s\npattern: %s\n%s%s',
+					      sender, subject,	e.msg,
+					      pattern, posi)
+
+		return ret
 
 
 	def load_ui_from_config(self, config_ui: Gtk.Widget) -> None:
@@ -211,6 +240,8 @@ class LibNotifyPlugin(Plugin):
 		self._switch_2FA_notifications.set_active(config['2fa_notifications'])
 		providers = self._eval_2fa_providers(config['2fa_providers'])
 		for (_enabled, _sender, _subject, _pattern) in providers:
+			if _enabled and not self._check_2fa_provider_pattern(_sender, _subject, _pattern):
+				_enabled = False
 			self._liststore_2FA_providers.append([_enabled, _sender, _subject, _pattern])
 
 
@@ -593,10 +624,16 @@ class LibNotifyPlugin(Plugin):
 
 		if d.run() != Gtk.ResponseType.OK:
 			return
-		row = [b.get_object('enable').get_active(),
-		       b.get_object('sender').get_text(),
-		       b.get_object('subject').get_text(),
-		       b.get_object('pattern').get_text()]
+
+		_enable = b.get_object('enable').get_active()
+		_sender = b.get_object('sender').get_text()
+		_subject = b.get_object('subject').get_text()
+		_pattern = b.get_object('pattern').get_text()
+
+		if not self._check_2fa_provider_pattern(_sender, _subject, _pattern) and _enabled:
+			_enabled = False
+
+		row = [_enable, _sender, _subject, _pattern]
 
 		iter = self._liststore_2FA_providers.append(row)
 		model = self._treeview_2FA_providers.get_model()
@@ -607,16 +644,7 @@ class LibNotifyPlugin(Plugin):
 
 	def _get_selected_provider(self) -> None:
 		treeselection = self._treeview_2FA_providers.get_selection()
-		selection = treeselection.get_selected()
-		model, iter = selection
-		sender = None
-		subject = None
-		pattern = None
-		if iter != None:
-			sender = model.get_value(iter, 1)
-			subject = model.get_value(iter, 2)
-			pattern = model.get_value(iter, 3)
-		return sender, subject, pattern, model, iter
+		return treeselection.get_selected()
 
 
 	def _show_confirmation_dialog(self, text: str) -> None:
@@ -630,14 +658,23 @@ class LibNotifyPlugin(Plugin):
 
 	def _on_btn_remove_provider_clicked(self, widget: Gtk.ToolButton) -> None:
 		logging.debug('on_btn_remove_provider_clicked')
-		sender, subject, pattern, model, iter = self._get_selected_provider()
-		if (iter is None
-		    or not self._show_confirmation_dialog(
+
+		treeselection = self._treeview_2FA_providers.get_selection()
+		model, iter = treeselection.get_selected()
+
+		if iter is None:
+			return
+
+		_sender = model.get_value(iter, 1)
+		_subject = model.get_value(iter, 2)
+		_pattern = model.get_value(iter, 3)
+
+		if not self._show_confirmation_dialog(
 			    _('Delete this provider:') + '\n' +
-				'\n' + _("Sender:") + sender +
-				'\n' + _("Subject:") + subject +
-				'\n' + _("Pattern:") +
-				'\n' + pattern)):
+				'\n  ' + _("Sender:") + _sender +
+				'\n  ' + _("Subject:") + _subject +
+				'\n  ' + _("Pattern:") +
+				'\n    ' + _pattern):
 			return
 
 		# select prev/next account
@@ -654,25 +691,40 @@ class LibNotifyPlugin(Plugin):
 
 
 	def _edit_provider(self) -> None:
-		sender, suject, pattern, model, iter = self._get_selected_provider()
+		treeselection = self._treeview_2FA_providers.get_selection()
+		model, iter = treeselection.get_selected()
+
 		if iter is None:
 			return
+
+		_enabled = model.get_value(iter, 0)
+		_sender = model.get_value(iter, 1)
+		_subject = model.get_value(iter, 2)
+		_pattern = model.get_value(iter, 3)
 
 		b = self._builder
 		d = self._dialog
 
-		b.get_object('enable').set_active(model.get_value(iter, 0))
-		b.get_object('sender').set_text(model.get_value(iter, 1))
-		b.get_object('subject').set_text(model.get_value(iter, 2))
-		b.get_object('pattern').set_text(model.get_value(iter, 3))
+		b.get_object('enable').set_active(_enabled)
+		b.get_object('sender').set_text(_sender)
+		b.get_object('subject').set_text(_subject)
+		b.get_object('pattern').set_text(_pattern)
 
 		if d.run() != Gtk.ResponseType.OK:
 			return
 
-		model.set_value(iter, 0, b.get_object('enable').get_active())
-		model.set_value(iter, 1, b.get_object('sender').get_text())
-		model.set_value(iter, 2, b.get_object('subject').get_text())
-		model.set_value(iter, 3, b.get_object('pattern').get_text())
+		_enabled = b.get_object('enable').get_active()
+		_sender = b.get_object('sender').get_text()
+		_subject = b.get_object('subject').get_text()
+		_pattern = b.get_object('pattern').get_text()
+
+		if not self._check_2fa_provider_pattern(_sender, _subject, _pattern) and _enabled:
+			_enabled = False
+
+		model.set_value(iter, 0, _enabled)
+		model.set_value(iter, 1, _sender)
+		model.set_value(iter, 2, _subject)
+		model.set_value(iter, 3, _pattern)
 
 
 	def _on_btn_edit_provider_clicked(self, widget: Gtk.ToolButton) -> None:
@@ -684,7 +736,16 @@ class LibNotifyPlugin(Plugin):
 		logging.debug('on_provider_toggled')
 		model = self._liststore_2FA_providers
 		iter = model.get_iter(path)
-		self._liststore_2FA_providers.set_value(iter, 0, not cell.get_active())
+
+		_enabled = not model.get_value(iter, 0)
+		_sender = model.get_value(iter, 1)
+		_subject = model.get_value(iter, 2)
+		_pattern = model.get_value(iter, 3)
+
+		if _enabled and not self._check_2fa_provider_pattern(_sender, _subject, _pattern):
+			return
+
+		self._liststore_2FA_providers.set_value(iter, 0, _enabled)
 
 
 	def _on_provider_row_activated(self, view: Gtk.TreeView, path: Gtk.TreePath, column: Gtk.TreeViewColumn) -> None:
