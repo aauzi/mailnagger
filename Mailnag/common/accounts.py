@@ -137,7 +137,38 @@ class Account:
 
 
 	def fetch_text(self, mail: Mail) -> str | None:
-		return self._get_backend().fetch_text(mail)
+		ret = None
+
+		# open mailbox for this account
+		try:
+			if not self.is_open():
+				self.open()
+		except Exception as ex:
+			logging.error("Failed to open mailbox for account '%s' (%s)." % (self.name, ex))
+			return ret
+
+		try:
+			ret = self._get_backend().fetch_text(mail)
+		except Exception as ex:
+			# Catch exceptions here, so remaining accounts will still be checked
+			# if a specific account has issues.
+			#
+			# Re-throw the exception for accounts that support notifications (i.e. imap IDLE),
+			# so the calling idler thread can handle the error and reset the connection if needed (see idlers.py).
+			# NOTE: Idler threads always check single accounts (i.e. len(self._accounts) == 1),
+			#	so there are no remaining accounts to be checked for now.
+			if self.supports_notifications():
+				raise
+			else:
+				logging.error("An error occured while processing mails of account '%s' (%s)." % (self.name, ex))
+		finally:
+			# leave account with notifications open, so that it can
+			# send notifications about new mails
+			if not self.supports_notifications():
+				# disconnect from Email-Server
+				self.close()
+
+		return ret
 
 
 	def supports_notifications(self) -> bool:

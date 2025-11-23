@@ -405,6 +405,11 @@ class LibNotifyPlugin(Plugin):
 			# but only once (different patterns may need to be tested)
 			if body is None:
 				body = mail.fetch_text()
+				
+			if body is None:
+				logging.warning("2FA match not achievable: sender=%s, subject=%s\nBody not available.",
+						sender, subject)
+				return False
 
 			m = re.search(_pattern, body)
 			if m is None:
@@ -419,7 +424,8 @@ class LibNotifyPlugin(Plugin):
 		else:
 			logging.debug("2FA not matched : sender=%s, subject=%s, body:\n%s",
 				      sender, subject,
-				      dbgindent(body))
+				      #dbgindent(body))
+				      '	 '+'\n	'.join(str(body).splitlines()))
 
 			return False
 

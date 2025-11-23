@@ -43,26 +43,35 @@ if TYPE_CHECKING:
 
 def message_text(msg: Message) -> str:
 	"""Extract the text body of the given message.
-	The default method is to flatten the message, skip the header
-	and unfold the long lines.
 	"""
-	fp = StringIO()
-	g = Generator(fp)
-	g.flatten(msg)
 
-	message = fp.getvalue().splitlines()
+	txt = ''
+	for part in msg.walk():
+		if 'text' != part.get_content_maintype():
+			continue
 
-	# skip header
-	n = 0
-	for line in message:
-		n += 1
-		if not len(line):
-			break
+		content_transfer_encoding = part.get('Content-Transfer-Encoding')
+		content_type = part.get_content_type()
+		charset = part.get_content_charset()
 
-	t = '\n'.join(message[n:])
-	t = t.replace('=\n', '')
-	return t.strip()
- 
+		if charset is None:
+		       charset = 'ascii'
+
+		if content_transfer_encoding == 'quoted-printable':
+			from quopri import decodestring
+			txt += decodestring(part.get_payload()).decode(charset)
+		elif content_transfer_encoding == 'base64':
+			from base64 import b64decode
+			txt += b64decode(part.get_payload()).decode(charset)
+		else:
+			txt += part.get_payload()
+
+	if not len(txt):
+		return None
+
+	return txt
+
+
 #
 # Mail class
 #
@@ -84,7 +93,7 @@ class Mail:
 		self.id = id
 		self.flags = flags
 		self.uid = uid
-		
+
 	def fetch_text(self):
 		return self.account.fetch_text(self)
 
@@ -96,12 +105,12 @@ class MailCollector:
 	def __init__(self, cfg: RawConfigParser, accounts: list["Account"]):
 		self._cfg = cfg
 		self._accounts = accounts
-		
-		
+
+
 	def collect_mail(self, sort: bool = True) -> list[Mail]:
 		mail_list: list[Mail] = []
 		mail_ids: dict[str, None] = {}
-		
+
 		for acc in self._accounts:
 			# open mailbox for this account
 			try:
@@ -115,7 +124,7 @@ class MailCollector:
 				for folder, msg, uid, flags in acc.list_messages():
 					sender, subject, datetime, msgid = self._get_header(msg)
 					id = self._get_id(msgid, acc, folder, sender, subject, datetime)
-				
+
 					# Discard mails with identical IDs (caused
 					# by mails with a non-unique fallback ID,
 					# i.e. mails received in the same folder with
@@ -127,12 +136,12 @@ class MailCollector:
 								      sender, id, acc, uid, flags))
 						mail_ids[id] = None
 			except Exception as ex:
-				# Catch exceptions here, so remaining accounts will still be checked 
+				# Catch exceptions here, so remaining accounts will still be checked
 				# if a specific account has issues.
 				#
 				# Re-throw the exception for accounts that support notifications (i.e. imap IDLE),
 				# so the calling idler thread can handle the error and reset the connection if needed (see idlers.py).
-				# NOTE: Idler threads always check single accounts (i.e. len(self._accounts) == 1), 
+				# NOTE: Idler threads always check single accounts (i.e. len(self._accounts) == 1),
 				#	so there are no remaining accounts to be checked for now.
 				if acc.supports_notifications():
 					raise
@@ -145,11 +154,11 @@ class MailCollector:
 					# disconnect from Email-Server
 					acc.close()
 
-			
+
 		# sort mails
 		if sort:
 			mail_list.sort(key = lambda m: m.datetime, reverse = True)
-		
+
 		return mail_list
 
 
@@ -159,18 +168,18 @@ class MailCollector:
 	) -> tuple[tuple[str, str], str, int, str]:
 		# Get sender
 		sender = ('', '')
-		
+
 		try:
 			content = self._get_header_field(msg_dict, 'From')
 			# get the two parts of the sender
 			addr = email.utils.parseaddr(content)
-			
+
 			if len(addr) != 2:
 				logging.warning('Malformed sender field in message.')
 			else:
 				sender_real = self._convert(addr[0])
 				sender_addr = self._convert(addr[1])
-			
+
 				sender = (sender_real, sender_addr)
 		except:
 			pass
@@ -181,11 +190,11 @@ class MailCollector:
 			subject = self._convert(content)
 		except:
 			subject = _('No subject')
-		
+
 		# Get date
 		try:
 			content = self._get_header_field(msg_dict, 'Date')
-			
+
 			# make a 10-tupel (UTC)
 			parsed_date = email.utils.parsedate_tz(content)
 			if parsed_date is not None:
@@ -197,16 +206,16 @@ class MailCollector:
 		except:
 			logging.warning('Email date set to zero.')
 			datetime = 0
-		
+
 		# Get message id
 		try:
 			msgid = self._get_header_field(msg_dict, 'Message-ID')
 		except:
 			msgid = ''
-		
+
 		return (sender, subject, datetime, msgid)
-	
-	
+
+
 	def _get_header_field(self, msg_dict: Message, key: str) -> str:
 		if key in msg_dict:
 			value = msg_dict[key]
@@ -215,7 +224,7 @@ class MailCollector:
 		else:
 			logging.debug("Couldn't get %s from message." % key)
 			raise KeyError
-		
+
 		return value
 
 
@@ -237,16 +246,16 @@ class MailCollector:
 		if len(msgid) > 0:
 			id = hashlib.md5(msgid.encode('utf-8')).hexdigest()
 		else:
-			# Fallback ID. 
-			# Note: mails received on the same server, 
-			# in the same folder with identical sender and 
-			# subject but *no datetime* will have the same hash id, 
-			# i.e. only the first mail is notified. 
+			# Fallback ID.
+			# Note: mails received on the same server,
+			# in the same folder with identical sender and
+			# subject but *no datetime* will have the same hash id,
+			# i.e. only the first mail is notified.
 			# (Should happen very rarely).
 			id = hashlib.md5((acc.get_id() + folder +
 				sender[1] + subject + str(datetime))
 				.encode('utf-8')).hexdigest()
-		
+
 		return id
 
 
@@ -258,21 +267,21 @@ class MailSyncer:
 		self._cfg = cfg
 		self._mails_by_account: dict[str, dict[str, Mail]] = {}
 		self._mail_list: list[Mail] = []
-	
-	
+
+
 	def sync(self, accounts: list["Account"]) -> list[Mail]:
 		needs_rebuild = False
-		
+
 		# collect mails from given accounts
 		rcv_lst = MailCollector(self._cfg, accounts).collect_mail(sort = False)
-		
+
 		# group received mails by account
 		tmp: dict[str, dict[str, Mail]] = {}
 		for acc in accounts:
 			tmp[acc.get_id()] = {}
 		for mail in rcv_lst:
 			tmp[mail.account.get_id()][mail.id] = mail
-	
+
 		# compare current mails against received mails
 		# and remove those that are gone (probably opened in mail client).
 		for acc_id in self._mails_by_account.keys():
@@ -284,7 +293,7 @@ class MailSyncer:
 						needs_rebuild = True
 				for mail_id in del_ids:
 					del self._mails_by_account[acc_id][mail_id]
-	
+
 		# compare received mails against current mails
 		# and add new mails.
 		for acc_id in tmp:
@@ -294,7 +303,7 @@ class MailSyncer:
 				if not (mail_id in self._mails_by_account[acc_id]):
 					self._mails_by_account[acc_id][mail_id] = tmp[acc_id][mail_id]
 					needs_rebuild = True
-		
+
 		# rebuild and sort mail list
 		if needs_rebuild:
 			self._mail_list = []
@@ -302,7 +311,7 @@ class MailSyncer:
 				for mail_id in self._mails_by_account[acc_id]:
 					self._mail_list.append(self._mails_by_account[acc_id][mail_id])
 			self._mail_list.sort(key = lambda m: m.datetime, reverse = True)
-		
+
 		return self._mail_list
 
 
@@ -313,15 +322,15 @@ class Memorizer(dict[str, str]):
 	def __init__(self) -> None:
 		dict.__init__(self)
 		self._changed: bool = False
-	
-	
+
+
 	def load(self) -> None:
 		self.clear()
 		self._changed = False
-		
+
 		# load last known messages from mailnag.dat
 		dat_file = os.path.join(cfg_folder, 'mailnag.dat')
-		
+
 		if os.path.exists(dat_file):
 			with open(dat_file, 'r') as f:
 				for line in f:
@@ -332,15 +341,15 @@ class Memorizer(dict[str, str]):
 					# add to dict [id : flag]
 					self[pair[0]] = pair[1]
 
-	
+
 	# save mail ids to a file
 	def save(self, force: bool = False) -> None:
 		if (not self._changed) and (not force):
 			return
-		
+
 		if not os.path.exists(cfg_folder):
 			os.makedirs(cfg_folder)
-		
+
 		dat_file = os.path.join(cfg_folder, 'mailnag.dat')
 		with open(dat_file, 'w') as f:
 			for id, seen_flag in list(self.items()):
@@ -356,10 +365,10 @@ class Memorizer(dict[str, str]):
 				# new mail is not yet known to the memorizer
 				self[m.id] = '0'
 				self._changed = True
-		
+
 		for id in list(self.keys()):
 			found = False
-			for m in mail_list:			
+			for m in mail_list:
 				if id == m.id:
 					found = True
 					# break inner for loop
@@ -367,8 +376,8 @@ class Memorizer(dict[str, str]):
 			if not found:
 				del self[id]
 				self._changed = True
-	
-	
+
+
 	# check if mail id is in the memorizer list
 	def contains(self, id: str):
 		return (id in self)

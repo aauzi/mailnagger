@@ -71,10 +71,10 @@ class IMAPMailboxBackend(MailboxBackend):
 	def open(self) -> None:
 		if self._conn != None:
 			raise InvalidOperationException("Account is aready open")
-		
+
 		self._conn = self._connect()
 
-		
+
 	def close(self) -> None:
 		# if conn has already been closed, don't try to close it again
 		if self._conn is not None:
@@ -91,7 +91,7 @@ class IMAPMailboxBackend(MailboxBackend):
 		self._ensure_open()
 		assert self._conn is not None
 		conn = self._conn
-		
+
 		if len(self.folders) == 0:
 			folder_list = ['INBOX']
 		else:
@@ -124,28 +124,29 @@ class IMAPMailboxBackend(MailboxBackend):
 					yield (folder, header, num.decode("utf-8"), { 'folder' : folder })
 
 	def fetch_text(self, mail: Mail) -> str | None:
-		conn = self._connect()
-		
-		typ, msg_data = conn.uid('FETCH', mail.uid.encode('utf-8'), '(BODY.PEEK[TEXT])') # body text (without setting READ flag)
+		self._ensure_open()
+		assert self._conn is not None
+		conn = self._conn
+
+		typ, msg_data = conn.uid('FETCH', mail.uid.encode('utf-8'), '(RFC822)') # body text (without setting READ flag)
 		logging.debug("Msg data (length=%d):\n%s", len(msg_data),
 			      dbgindent(msg_data))
-		text = []
+
+		bbb = b''
 		for response_part in msg_data:
 			if isinstance(response_part, tuple):
-				if b'BODY[TEXT]' in response_part[0]:
-					msg = email.message_from_bytes(response_part[1])
-					if msg is not None:
-						t = message_text(msg)
-						text.append(t)
-		if len(text):
-			return ''.join(text).strip()
-		
+				bbb += response_part[1]
+
+		msg = email.message_from_bytes(bbb)
+		if msg is not None:
+			return message_text(msg)
+
 		return None
 
 
 	def request_folders(self) -> list[str]:
 		lst = []
-		
+
 		# Always create a new connection as an existing one may
 		# be used for IMAP IDLE.
 		conn = self._connect()
@@ -154,7 +155,7 @@ class IMAPMailboxBackend(MailboxBackend):
 			status, data = conn.list()
 		finally:
 			self._disconnect(conn)
-		
+
 		for d in data:
 			match = re.match(r'.+\s+("."|"?NIL"?)\s+"?([^"]+)"?$', d.decode('utf-8'))
 
@@ -163,7 +164,7 @@ class IMAPMailboxBackend(MailboxBackend):
 			else:
 				folder = match.group(2)
 				lst.append(decode_mutf7(folder))
-		
+
 		return lst
 
 
@@ -175,11 +176,11 @@ class IMAPMailboxBackend(MailboxBackend):
 		# Always create a new connection as an existing one may
 		# be used for IMAP IDLE.
 		conn = self._connect()
-		
+
 		try:
 			sorted_mails = sorted(mails, key = lambda m : m.flags['folder'] if 'folder' in m.flags else '')
 			last_folder = ''
-			
+
 			for m in sorted_mails:
 				if ('uid' in m.flags) and ('folder' in m.flags):
 					try:
@@ -193,8 +194,8 @@ class IMAPMailboxBackend(MailboxBackend):
 
 		finally:
 			self._disconnect(conn)
-	
-	
+
+
 	def supports_notifications(self) -> bool:
 		"""Returns True if mailbox supports notifications.
 		IMAP mailbox supports notifications if idle parameter is True"""
@@ -208,7 +209,7 @@ class IMAPMailboxBackend(MailboxBackend):
 	) -> None:
 		self._ensure_open()
 		assert self._conn is not None
-		
+
 		# register idle callback that is called whenever an idle event
 		# arrives (new mail / mail deleted).
 		# the callback is called after <idle_timeout> minutes at the latest.
@@ -221,7 +222,7 @@ class IMAPMailboxBackend(MailboxBackend):
 			# call actual callback
 			if callback is not None:
 				callback(error)
-		
+
 		self._conn.idle(callback = _idle_callback, timeout = timeout)
 
 
@@ -230,7 +231,7 @@ class IMAPMailboxBackend(MailboxBackend):
 		# Analogous to close().
 		# (Otherwise cleanup code like in Idler._idle() will fail)
 		# self._ensure_open()
-		
+
 		try:
 			if self._conn is not None:
 				# Exit possible active idle state.
@@ -238,11 +239,11 @@ class IMAPMailboxBackend(MailboxBackend):
 				self._conn.noop()
 		except:
 			pass
-	
-	
+
+
 	def _connect(self) -> imaplib.IMAP4:
 		conn: Optional[imaplib.IMAP4] = None
-		
+
 		try:
 			if self.ssl:
 				if self.port == '':
@@ -254,12 +255,12 @@ class IMAPMailboxBackend(MailboxBackend):
 					conn = imaplib.IMAP4(self.server)
 				else:
 					conn = imaplib.IMAP4(self.server, int(self.port))
-				
+
 				if 'STARTTLS' in conn.capabilities:
 					conn.starttls()
 				else:
 					logging.warning("Using unencrypted connection for account '%s'" % self.name)
-				
+
 			if self.oauth2string != '':
 				conn.authenticate('XOAUTH2', lambda x: self.oauth2string)
 			elif 'AUTH=CRAM-MD5' in conn.capabilities:
@@ -274,31 +275,30 @@ class IMAPMailboxBackend(MailboxBackend):
 					conn.logout()
 			except: pass
 			raise # re-throw exception
-		
+
 		# notify_next_change() (IMAP IDLE) requires a selected folder
 		if conn.state == AUTH:
 			self._select_single_folder(conn)
-		
+
 		return conn
 
 
 	def _disconnect(self, conn: imaplib.IMAP4) -> None:
 		try:
 			conn.close()
-		finally:		
-			# Closing the connection may fail (e.g. wrong state), 
+		finally:
+			# Closing the connection may fail (e.g. wrong state),
 			# but resources need to be freed anyway.
 			conn.logout()
-	
-	
+
+
 	def _select_single_folder(self, conn: imaplib.IMAP4) -> None:
 		if len(self.folders) == 1:
 			folder = self.folders[0]
 		else:
 			folder = "INBOX"
 		conn.select(f'"{folder}"', readonly = True)
-	
+
 	def _ensure_open(self) -> None:
 		if not self.is_open():
 			raise InvalidOperationException("Account is not open")
-
