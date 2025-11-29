@@ -60,8 +60,8 @@ plugin_defaults = {
 	'max_visible_mails' : '10',
 	'2fa_notifications' : True,
 	'2fa_providers': [
-		(True, 'Garmin', 'Your Security Passcode',    r'<strong[^>]*>(?P<code>\d+)</strong>'),
-		(True, 'Garmin', _('Your Security Passcode'), r'<strong[^>]*>(?P<code>\d+)</strong>'),
+		(True, 'Garmin', 'Your Security Passcode',    r'<strong[^>]*>{code}</strong>'),
+		(True, 'Garmin', _('Your Security Passcode'), r'<strong[^>]*>{code}</strong>'),
 	],
 }
 
@@ -208,15 +208,15 @@ class LibNotifyPlugin(Plugin):
 	@staticmethod
 	def _check_2fa_provider_pattern(sender: str, subject: str, pattern: str) -> bool:
 		ret = True
-		if not '(?P<code>' in pattern:
+		if not '{code}' in pattern:
 			ret = False
-			logging.error('missing "code" group pattern: (?P<code>...\n'+
+			logging.error('missing "code" group pattern: {code}...\n'+
 				      'sender: %s, subject: %s\npattern:\n%s',
 				      sender, subject,
 				      pattern)
 		if ret:
 			try:
-				_cre = re.compile(pattern)
+				_cre = re.compile(pattern.replace('{code}', r'(?P<code>\d+)'))
 			except re.PatternError as e:
 				ret = False
 				posi = ''
@@ -395,6 +395,20 @@ class LibNotifyPlugin(Plugin):
 			if sender != _sender:
 				continue
 
+			if _subject != subject and '{code}' in _subject:
+				m = re.match(_subject.replace('{code}', r'(?P<code>\d+)'), subject)
+
+				if m is None:
+					continue
+
+				code = m.group('code')
+				if code:
+					logging.debug("2FA matched code %s: sender=%s, subject=%s",
+						      code,
+						      sender, subject)
+					break
+
+
 			if subject != _subject:
 				continue
 
@@ -405,13 +419,13 @@ class LibNotifyPlugin(Plugin):
 			# but only once (different patterns may need to be tested)
 			if body is None:
 				body = mail.fetch_text()
-				
+
 			if body is None:
 				logging.warning("2FA match not achievable: sender=%s, subject=%s\nBody not available.",
 						sender, subject)
 				return False
 
-			m = re.search(_pattern, body)
+			m = re.search(_pattern.replace('{code}', r'(?P<code>\d+)'), body)
 			if m is None:
 				continue
 
