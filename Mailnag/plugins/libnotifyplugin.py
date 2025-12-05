@@ -396,7 +396,8 @@ class LibNotifyPlugin(Plugin):
 				continue
 
 			if _subject != subject and '{code}' in _subject:
-				m = re.match(_subject.replace('{code}', r'(?P<code>\d+)'), subject)
+				_pattern = re.escape(_subject).replace(r'\{code\}', r'(?P<code>\d+)')
+				m = re.match(_pattern, subject)
 
 				if m is None:
 					continue
