@@ -643,7 +643,7 @@ class LibNotifyPlugin(Plugin):
 		b.get_object('enable').set_active(False)
 		b.get_object('sender').set_text('')
 		b.get_object('subject').set_text('')
-		b.get_object('pattern').set_text('')
+		b.get_object('pattern_text_buffer').set_text('')
 
 		if d.run() != Gtk.ResponseType.OK:
 			return
@@ -651,7 +651,7 @@ class LibNotifyPlugin(Plugin):
 		_enable = b.get_object('enable').get_active()
 		_sender = b.get_object('sender').get_text()
 		_subject = b.get_object('subject').get_text()
-		_pattern = b.get_object('pattern').get_text()
+		_pattern = b.get_object('pattern_text_buffer').get_text()
 
 		if not self._check_2fa_provider_pattern(_sender, _subject, _pattern) and _enabled:
 			_enabled = False
@@ -731,7 +731,7 @@ class LibNotifyPlugin(Plugin):
 		b.get_object('enable').set_active(_enabled)
 		b.get_object('sender').set_text(_sender)
 		b.get_object('subject').set_text(_subject)
-		b.get_object('pattern').set_text(_pattern)
+		b.get_object('pattern_text_buffer').set_text(_pattern)
 
 		if d.run() != Gtk.ResponseType.OK:
 			return
@@ -739,7 +739,7 @@ class LibNotifyPlugin(Plugin):
 		_enabled = b.get_object('enable').get_active()
 		_sender = b.get_object('sender').get_text()
 		_subject = b.get_object('subject').get_text()
-		_pattern = b.get_object('pattern').get_text()
+		_pattern = b.get_object('pattern_text_buffer').get_text()
 
 		if not self._check_2fa_provider_pattern(_sender, _subject, _pattern) and _enabled:
 			_enabled = False
