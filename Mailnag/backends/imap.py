@@ -27,6 +27,7 @@
 import email
 import logging
 import re
+import time
 from collections.abc import Callable
 from email.message import Message
 from typing import Any, Iterator, Optional
@@ -37,12 +38,14 @@ from Mailnag.common.imaplib2 import AUTH
 from Mailnag.common.exceptions import InvalidOperationException
 from Mailnag.common.mutf7 import encode_mutf7, decode_mutf7
 from Mailnag.daemon.mails import Mail, message_text
-from Mailnag.common.utils import dbgindent
+from Mailnag.common.utils import dbgindent, get_goa_account_id, refresh_goa_token
 
 _LOGGER = logging.getLogger(__name__)
 
 class IMAPMailboxBackend(MailboxBackend):
 	"""Implementation of IMAP mail boxes."""
+
+	THROTTLE_TIME=0.25
 
 	def __init__(
 		self,
@@ -55,7 +58,6 @@ class IMAPMailboxBackend(MailboxBackend):
 		ssl: bool = True,
 		folders: list[str] = [],
 		idle: bool = True,
-		goa_account_id: str = '',
 		**kw
 	):
 		self.name = name
@@ -67,8 +69,12 @@ class IMAPMailboxBackend(MailboxBackend):
 		self.ssl = ssl # bool
 		self.folders = [encode_mutf7(folder) for folder in folders]
 		self.idle = idle
-		self.goa_account_id = goa_account_id
 		self._conn: Optional[imaplib.IMAP4] = None
+		self._last_access = None
+
+		self.goa_account_id = None
+		if self.oauth2string:
+			self.goa_account_id = get_goa_account_id(name, user)
 
 	def open(self) -> None:
 		if self._conn != None:
@@ -88,7 +94,7 @@ class IMAPMailboxBackend(MailboxBackend):
 	def is_open(self) -> bool:
 		return self._conn != None
 
-
+	
 	def list_messages(self) -> Iterator[tuple[str, Message, str | None, dict[str, Any]]]:
 		self._ensure_open()
 		assert self._conn is not None
@@ -111,6 +117,7 @@ class IMAPMailboxBackend(MailboxBackend):
 			if status != 'OK' or None in [d for d in data]:
 				logging.debug('Folder %s in status %s | Data: %s', (folder, status, data))
 				continue # Bugfix LP-735071
+			
 			for num in data[0].split():
 				typ, msg_data = conn.uid('FETCH', num, '(BODY.PEEK[HEADER])') # header (without setting READ flag)
 				logging.debug("Msg data (length=%d):\n%s", len(msg_data),
@@ -126,14 +133,17 @@ class IMAPMailboxBackend(MailboxBackend):
 					yield (folder, header, num.decode("utf-8"), { 'folder' : folder })
 
 	def fetch_text(self, mail: Mail) -> str | None:
-		self._ensure_open()
 		text = self._fetch_text(mail)
-		if text:
+
+		# NOTE: Sometimes a server does not return the text immediately
+		if text is not None:
 			return text
 
+		loggin.warning('Retry fetch_text.')
 		return self._fetch_text(mail)
 
 	def _fetch_text(self, mail: Mail) -> str | None:
+		self._ensure_open()
 		assert self._conn is not None
 		conn = self._conn
 
@@ -250,41 +260,34 @@ class IMAPMailboxBackend(MailboxBackend):
 			pass
 
 
+	def _throttle(self, reset=False):
+		if not reset and self._last_access is not None:
+			duration = time.time() - self._last_access
+			if duration < self.THROTTLE_TIME:
+				time.sleep(self.THROTTLE_TIME - duration)
+		self._last_access = time.time()
+		
+
 	def _refresh_token(self):
+		_LOGGER.debug("Refresh token...")
 		if not self.goa_account_id:
-			return False
-		try:
-			from gi.repository import Goa
-			client = Goa.Client.new_sync(None)
-			accounts = client.get_accounts()
-			targt_obj = None
-			for obj in accounts:
-				account = obj.get_account()
-				if not account:
-					continue
-				account_id = account.get_property('id')
-				if account_id == self.goa_account_id:
-					target_obj = obj
-					break
-			else:
-				_LOGGER.error("GOA account not found, id: %s", self.goa_account_id)
-				return False
-
-			oauth2 = target_obj.get_oauth2_based()
-			if not oauth2:
-				_LOGGER.error("GOA account does not support OAuth2, id: %s", self.goa_account_id)
-				return False
-
-			token = oauth2.call_get_access_token_sync(None)
-			oauth2string = 'user=%s\1auth=Bearer %s\1\1' % (self.user, token[0])
-			if oauth2string != self.oauth2string:
-				self.oauth2string = oauth2string
-				_LOGGER.info("Token refreshed")
 			return True
-		except Exception as e:
-			_LOGGER.error("Exception in refresh_token: %s", str(e))
+		
+		token = refresh_goa_token(self.goa_account_id)
+		if token is None:
+			_LOGGER.debug("Refresh GOA token did not return token.")
+			return False
+		
+		oauth2string = 'user=%s\1auth=Bearer %s\1\1' % (self.user, token[0])
+		if oauth2string == self.oauth2string:
+			_LOGGER.debug("OAuth2string did not change.")
+			return True
+		
+		self.oauth2string = oauth2string
+		_LOGGER.debug("Token refreshed")
+		return True
 
-
+	
 	def _connect(self) -> imaplib.IMAP4:
 		conn: Optional[imaplib.IMAP4] = None
 
@@ -313,6 +316,8 @@ class IMAPMailboxBackend(MailboxBackend):
 				conn.login_cram_md5(self.user, self.password)
 			else:
 				conn.login(self.user, self.password)
+
+			self._throttle(reset=True)
 		except:
 			try:
 				if conn is not None:
@@ -347,3 +352,4 @@ class IMAPMailboxBackend(MailboxBackend):
 	def _ensure_open(self) -> None:
 		if not self.is_open():
 			raise InvalidOperationException("Account is not open")
+		self._throttle()

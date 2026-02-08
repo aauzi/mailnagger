@@ -60,7 +60,6 @@ def test_account_should_keep_configuration():
 		idle=True,
 		folders=['a', 'b'],
 		mailbox_type='mybox',
-                goa_account_id='account_12345'
 	)
 	config = account.get_config()
 	expected_config = {
@@ -76,7 +75,6 @@ def test_account_should_keep_configuration():
 		'idle': True,
 		'folders': ['a', 'b'],
 		'mailbox_type': 'mybox',
-                'goa_account_id': 'account_12345'
 	}
 	assert expected_config == config
 
@@ -92,7 +90,6 @@ def test_account_should_store_configuration():
 		'imap': True,
 		'idle': True,
 		'folders': ['a', 'b'],
-                'goa_account_id': 'account_56789',
 	}
 	account = Account()
 	account.set_config(mailbox_type='mybox', name='my name', enabled=True, config=new_config)
@@ -110,7 +107,6 @@ def test_account_should_store_configuration():
 		'idle': True,
 		'folders': ['a', 'b'],
 		'mailbox_type': 'mybox',
-                'goa_account_id': 'account_56789',
 	}
 	assert expected_config == config
 

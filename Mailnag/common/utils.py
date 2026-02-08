@@ -27,12 +27,16 @@ import logging.handlers
 from collections.abc import Callable
 from typing import TypeVar
 
+import gi
+gi.require_version('Goa', '1.0')
+from gi.repository import Goa
 
 from Mailnag.common.dist_cfg import DBUS_BUS_NAME, DBUS_OBJ_PATH
 
 LOG_FORMAT = '%(levelname)s (%(asctime)s): %(message)s'
 LOG_DATE_FORMAT = '%Y-%m-%d %H:%M:%S'
 
+_LOGGER = logging.getLogger(__name__)
 
 def init_logging(
 	enable_stdout: bool = True,
@@ -103,11 +107,51 @@ def shutdown_existing_instance(wait_for_completion: bool = True) -> None:
 			print('FAILED')
 
 
+def get_goa_account_id(name, user):
+	_LOGGER.debug("Get GOA account: name: %s, user: %s", name, user)
+	
+	client = Goa.Client.new_sync(None)
+	goa_accounts = client.get_accounts()
+	    
+	for obj in goa_accounts:
+		account = obj.get_account()
+		if account is None or account.props.mail_disabled:
+			continue
+		mail = obj.get_mail()
+		if mail is None or not mail.props.imap_supported:
+			continue
+
+		_LOGGER.debug("	 account: name: %s, user: %s",
+                              mail.props.email_address,
+                              mail.props.imap_user_name)
+		if (name == mail.props.email_address
+		    and user == mail.props.imap_user_name):
+			identity = account.get_property('id')
+			_LOGGER.debug("	 account: name: %s, user: %s, id: %s",
+				      mail.props.email_address,
+				      mail.props.imap_user_name,
+				      identity)
+			return identity
+	return None
+
+def refresh_goa_token(account_id):
+	client = Goa.Client.new_sync(None)
+	obj = client.lookup_by_id(account_id)
+	if obj is None:
+		return None
+
+	oauth2_based = obj.get_oauth2_based()
+	if oauth2_based is None:
+		return None
+	
+	return oauth2_based.call_get_access_token_sync(None)
+	
+
 def strlimit(txt: str) -> str:
-        txt = str(txt)
-        return txt[:min(80, len(txt))] + '...'
+	txt = str(txt)
+	return txt[:min(80, len(txt))] + '...'
 
 
 def dbgindent(txt: str) -> str:
-        txt = strlimit(str(txt).strip())
-        return '    ' + '\n    '.join(txt.splitlines())
+	txt = strlimit(str(txt).strip())
+	return '    ' + '\n    '.join(txt.splitlines())

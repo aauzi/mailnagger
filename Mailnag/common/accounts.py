@@ -95,7 +95,6 @@ class Account:
 		self.imap = config.get('imap', True)
 		self.idle = config.get('idle', False)
 		self.folders = config.get('folders', [])
-		self.goa_account_id = config.get('goa_account_id', '')
 		self._rest_of_config = config
 		if self._backend and self._backend.is_open():
 			self._backend.close()
@@ -242,7 +241,6 @@ class Account:
 			'imap': self.imap,
 			'idle': self.idle,
 			'folders': self.folders,
-                        'goa_account_id': self.goa_account_id,
 		}
 		config.update(imap_pop_config)
 		config.update(self._rest_of_config)
