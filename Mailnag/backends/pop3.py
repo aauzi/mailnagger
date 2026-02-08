@@ -45,6 +45,7 @@ class POP3MailboxBackend(MailboxBackend):
 		server: str = '',
 		port: str = '',
 		ssl: bool = True,
+                goa_account_id: str = '',
 		**kw
 	):
 		self.name = name
@@ -54,6 +55,7 @@ class POP3MailboxBackend(MailboxBackend):
 		self.server = server
 		self.port = port
 		self.ssl = ssl # bool
+		self.goa_account_id = goa_account_id
 		self._conn: Optional[poplib.POP3] = None
 
 

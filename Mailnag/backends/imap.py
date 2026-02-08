@@ -39,6 +39,7 @@ from Mailnag.common.mutf7 import encode_mutf7, decode_mutf7
 from Mailnag.daemon.mails import Mail, message_text
 from Mailnag.common.utils import dbgindent
 
+_LOGGER = logging.getLogger(__name__)
 
 class IMAPMailboxBackend(MailboxBackend):
 	"""Implementation of IMAP mail boxes."""
@@ -54,6 +55,7 @@ class IMAPMailboxBackend(MailboxBackend):
 		ssl: bool = True,
 		folders: list[str] = [],
 		idle: bool = True,
+		goa_account_id: str = '',
 		**kw
 	):
 		self.name = name
@@ -65,8 +67,8 @@ class IMAPMailboxBackend(MailboxBackend):
 		self.ssl = ssl # bool
 		self.folders = [encode_mutf7(folder) for folder in folders]
 		self.idle = idle
+		self.goa_account_id = goa_account_id
 		self._conn: Optional[imaplib.IMAP4] = None
-
 
 	def open(self) -> None:
 		if self._conn != None:
@@ -125,6 +127,13 @@ class IMAPMailboxBackend(MailboxBackend):
 
 	def fetch_text(self, mail: Mail) -> str | None:
 		self._ensure_open()
+		text = self._fetch_text(mail)
+		if text:
+			return text
+
+		return self._fetch_text(mail)
+
+	def _fetch_text(self, mail: Mail) -> str | None:
 		assert self._conn is not None
 		conn = self._conn
 
@@ -241,6 +250,41 @@ class IMAPMailboxBackend(MailboxBackend):
 			pass
 
 
+	def _refresh_token(self):
+		if not self.goa_account_id:
+			return False
+		try:
+			from gi.repository import Goa
+			client = Goa.Client.new_sync(None)
+			accounts = client.get_accounts()
+			targt_obj = None
+			for obj in accounts:
+				account = obj.get_account()
+				if not account:
+					continue
+				account_id = account.get_property('id')
+				if account_id == self.goa_account_id:
+					target_obj = obj
+					break
+			else:
+				_LOGGER.error("GOA account not found, id: %s", self.goa_account_id)
+				return False
+
+			oauth2 = target_obj.get_oauth2_based()
+			if not oauth2:
+				_LOGGER.error("GOA account does not support OAuth2, id: %s", self.goa_account_id)
+				return False
+
+			token = oauth2.call_get_access_token_sync(None)
+			oauth2string = 'user=%s\1auth=Bearer %s\1\1' % (self.user, token[0])
+			if oauth2string != self.oauth2string:
+				self.oauth2string = oauth2string
+				_LOGGER.info("Token refreshed")
+			return True
+		except Exception as e:
+			_LOGGER.error("Exception in refresh_token: %s", str(e))
+
+
 	def _connect(self) -> imaplib.IMAP4:
 		conn: Optional[imaplib.IMAP4] = None
 
@@ -262,6 +306,7 @@ class IMAPMailboxBackend(MailboxBackend):
 					logging.warning("Using unencrypted connection for account '%s'" % self.name)
 
 			if self.oauth2string != '':
+				self._refresh_token()
 				conn.authenticate('XOAUTH2', lambda x: self.oauth2string)
 			elif 'AUTH=CRAM-MD5' in conn.capabilities:
 				# use CRAM-MD5 auth if available
