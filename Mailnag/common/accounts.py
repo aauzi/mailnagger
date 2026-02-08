@@ -35,6 +35,8 @@ from Mailnag.common.secretstore import SecretStore
 from Mailnag.common.dist_cfg import PACKAGE_NAME
 from Mailnag.daemon.mails import Mail
 
+_LOGGER = logging.getLogger(__name__)
+
 account_defaults = {
 	'enabled'			: '0',
 	'type'				: 'imap',
@@ -144,7 +146,7 @@ class Account:
 			if not self.is_open():
 				self.open()
 		except Exception as ex:
-			logging.error("Failed to open mailbox for account '%s' (%s)." % (self.name, ex))
+			_LOGGER.error("Failed to open mailbox for account '%s' (%s)." % (self.name, ex))
 			return ret
 
 		try:
@@ -160,7 +162,7 @@ class Account:
 			if self.supports_notifications():
 				raise
 			else:
-				logging.error("An error occured while processing mails of account '%s' (%s)." % (self.name, ex))
+				_LOGGER.error("An error occured while processing mails of account '%s' (%s)." % (self.name, ex))
 		finally:
 			# leave account with notifications open, so that it can
 			# send notifications about new mails
@@ -259,7 +261,7 @@ class AccountManager:
 		self._secretstore = SecretStore.get_default()
 
 		if self._secretstore is None:
-			logging.warning("Failed to create secretstore - account passwords will be stored in plaintext config file.")
+			_LOGGER.warning("Failed to create secretstore - account passwords will be stored in plaintext config file.")
 
 
 	def __len__(self) -> int:
@@ -374,7 +376,7 @@ class AccountManager:
 		i = 1
 		for acc in self._accounts:
 			if acc.oauth2string != '':
-				logging.warning("Saving of OAuth2 based accounts is not supported. Account '%s' skipped." % acc.name)
+				_LOGGER.warning("Saving of OAuth2 based accounts is not supported. Account '%s' skipped." % acc.name)
 				continue
 
 			section_name = "account" + str(i)

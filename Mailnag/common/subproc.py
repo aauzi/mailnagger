@@ -23,6 +23,8 @@ import logging
 from collections.abc import Callable
 from typing import Optional, Union
 
+_LOGGER = logging.getLogger(__name__)
+
 # Note : All functions of this module *are* thread-safe.
 
 # Protects access to the proc dictionary.
@@ -63,7 +65,7 @@ def start_subprocess(
 		pid = -1
 		try:
 			p = subprocess.Popen(args, shell = shell)
-		except: logging.exception('Caught an exception.')
+		except: _LOGGER.exception('Caught an exception.')
 	
 		if p is not None:
 			pid = p.pid
@@ -96,7 +98,7 @@ def terminate_subprocesses(timeout: float = 3.0) -> None:
 				# waiting for p.wait().
 				# Note : terminate() does not block.
 				try: p.terminate()
-				except: logging.debug('p.terminate() failed')
+				except: _LOGGER.debug('p.terminate() failed')
 
 		# Start a watchdog thread that will kill 
 		# all processes that didn't terminate within <timeout> seconds.
@@ -110,7 +112,7 @@ def terminate_subprocesses(timeout: float = 3.0) -> None:
 		wd.stop()
 	
 		if not wd.triggered:
-			logging.info('All subprocesses exited normally.')
+			_LOGGER.info('All subprocesses exited normally.')
 
 
 # Internal Watchdog class
@@ -125,7 +127,7 @@ class _Watchdog(threading.Thread):
 	def run(self) -> None:
 		self._event.wait(self._timeout)
 		if not self._event.is_set():
-			logging.warning('Process termination took too long - watchdog starts killing...')
+			_LOGGER.warning('Process termination took too long - watchdog starts killing...')
 			self.triggered = True
 			with _proc_lock:
 				for t, p in _procs.items():
@@ -133,8 +135,8 @@ class _Watchdog(threading.Thread):
 						# Kill process p and quit the thread 
 						# waiting for p to terminate (p.wait()).
 						p.kill()
-						logging.info('Watchdog killed process %s' % p.pid)
-					except: logging.debug('p.kill() failed')
+						_LOGGER.info('Watchdog killed process %s' % p.pid)
+					except: _LOGGER.debug('p.kill() failed')
 
 
 	def stop(self) -> None:

@@ -81,7 +81,7 @@ def try_call(f: Callable[[], T], err_retval: T) -> T:
 	try:
 		return f()
 	except:
-		logging.exception('Caught an exception.')
+		_LOGGER.exception('Caught an exception.')
 		return err_retval
 
 

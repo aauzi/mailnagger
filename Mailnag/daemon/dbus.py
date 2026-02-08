@@ -25,6 +25,8 @@ from Mailnag.common.exceptions import InvalidOperationException
 from Mailnag.common.plugins import MailnagController
 from Mailnag.daemon.mails import Mail
 
+_LOGGER = logging.getLogger(__name__)
+
 MAX_INT32 = ((0xFFFFFFFF // 2) - 1)
 
 
@@ -113,7 +115,7 @@ class DBusService(dbus.service.Object):
 			name, addr = m.sender
 			
 			if m.datetime > MAX_INT32:
-				logging.warning('dbusservice: datetime out of range (mailnag dbus api uses int32 timestamps).')
+				_LOGGER.warning('dbusservice: datetime out of range (mailnag dbus api uses int32 timestamps).')
 				datetime = 0
 			else:
 				datetime = m.datetime

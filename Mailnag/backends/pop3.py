@@ -33,6 +33,8 @@ from Mailnag.backends.base import MailboxBackend
 from Mailnag.common.exceptions import InvalidOperationException
 from Mailnag.daemon.mails import message_text
 
+_LOGGER = logging.getLogger(__name__)
+
 class POP3MailboxBackend(MailboxBackend):
 	"""Implementation of POP3 mail boxes."""
 
@@ -78,7 +80,7 @@ class POP3MailboxBackend(MailboxBackend):
 				try:
 					conn.stls()
 				except:
-					logging.warning("Using unencrypted connection for account '%s'" % self.name)
+					_LOGGER.warning("Using unencrypted connection for account '%s'" % self.name)
 
 			conn.getwelcome()
 			conn.user(self.user)
@@ -117,7 +119,7 @@ class POP3MailboxBackend(MailboxBackend):
 				# header plus first 0 lines from body
 				message = conn.top(i, 0)[1]
 			except:
-				logging.debug("Couldn't get POP message.")
+				_LOGGER.debug("Couldn't get POP message.")
 				continue
 
 			uid = None
@@ -125,7 +127,7 @@ class POP3MailboxBackend(MailboxBackend):
 				# uid of message
 				uid = conn.uidl(i).split()[3]
 			except:
-				logging.debug("Couldn't get POP message uid.")
+				_LOGGER.debug("Couldn't get POP message uid.")
 
 			# convert list to byte sequence
 			message_bytes = b'\n'.join(message)
@@ -133,7 +135,7 @@ class POP3MailboxBackend(MailboxBackend):
 			try:
 				msg = email.message_from_bytes(message_bytes)
 			except:
-				logging.debug("Couldn't get msg from POP message.")
+				_LOGGER.debug("Couldn't get msg from POP message.")
 				continue
 			yield (folder, msg, uid, {})
 
@@ -153,14 +155,14 @@ class POP3MailboxBackend(MailboxBackend):
 					# get message size
 					size = int(conn.stat(i)[1])
 				except:
-					logging.debug("Couldn't get msg size from POP.")
+					_LOGGER.debug("Couldn't get msg size from POP.")
 					break
 
 				try:
 					# header plus <size> lines from body
 					message = conn.top(i, size)[1]
 				except:
-					logging.debug("Couldn't get POP message.")
+					_LOGGER.debug("Couldn't get POP message.")
 					break
 
 				message_bytes = b'\n'.join(message)
@@ -169,7 +171,7 @@ class POP3MailboxBackend(MailboxBackend):
 					msg = email.message_from_bytes(message_bytes)
 					return message_text(msg)
 				except:
-					logging.debug("Couldn't get msg from POP message.")
+					_LOGGER.debug("Couldn't get msg from POP message.")
 					break
 
 				break

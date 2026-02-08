@@ -37,6 +37,8 @@ from typing import Any, TYPE_CHECKING
 from Mailnag.common.i18n import _
 from Mailnag.common.config import cfg_folder
 
+_LOGGER = logging.getLogger(__name__)
+
 if TYPE_CHECKING:
 	from Mailnag.common.accounts import Account
 
@@ -117,7 +119,7 @@ class MailCollector:
 				if not acc.is_open():
 					acc.open()
 			except Exception as ex:
-				logging.error("Failed to open mailbox for account '%s' (%s)." % (acc.name, ex))
+				_LOGGER.error("Failed to open mailbox for account '%s' (%s)." % (acc.name, ex))
 				continue
 
 			try:
@@ -146,7 +148,7 @@ class MailCollector:
 				if acc.supports_notifications():
 					raise
 				else:
-					logging.error("An error occured while processing mails of account '%s' (%s)." % (acc.name, ex))
+					_LOGGER.error("An error occured while processing mails of account '%s' (%s)." % (acc.name, ex))
 			finally:
 				# leave account with notifications open, so that it can
 				# send notifications about new mails
@@ -175,7 +177,7 @@ class MailCollector:
 			addr = email.utils.parseaddr(content)
 
 			if len(addr) != 2:
-				logging.warning('Malformed sender field in message.')
+				_LOGGER.warning('Malformed sender field in message.')
 			else:
 				sender_real = self._convert(addr[0])
 				sender_addr = self._convert(addr[1])
@@ -201,10 +203,10 @@ class MailCollector:
 				# convert 10-tupel to seconds incl. timezone shift
 				datetime = email.utils.mktime_tz(parsed_date)
 			else:
-				logging.warning('Email date set to zero.')
+				_LOGGER.warning('Email date set to zero.')
 				datetime = 0
 		except:
-			logging.warning('Email date set to zero.')
+			_LOGGER.warning('Email date set to zero.')
 			datetime = 0
 
 		# Get message id
@@ -222,7 +224,7 @@ class MailCollector:
 		elif key.lower() in msg_dict:
 			value = msg_dict[key.lower()]
 		else:
-			logging.debug("Couldn't get %s from message." % key)
+			_LOGGER.debug("Couldn't get %s from message." % key)
 			raise KeyError
 
 		return value

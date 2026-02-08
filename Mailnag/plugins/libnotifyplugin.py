@@ -51,6 +51,7 @@ NOTIFICATION_MODE_SUMMARY = '1'
 NOTIFICATION_MODE_SINGLE = '2'
 NOTIFICATION_MODE_SILENT = '4'
 
+_LOGGER = logging.getLogger(__name__)
 
 DESKTOP_ENV_VARS_FOR_SUPPORT_TEST = ('XDG_CURRENT_DESKTOP', 'GDMSESSION')
 SUPPORTED_DESKTOP_ENVIRONMENTS = ("gnome", "cinnamon")
@@ -210,7 +211,7 @@ class LibNotifyPlugin(Plugin):
 		ret = True
 		if not '{code}' in pattern:
 			ret = False
-			logging.error('missing "code" group pattern: {code}...\n'+
+			_LOGGER.error('missing "code" group pattern: {code}...\n'+
 				      'sender: %s, subject: %s\npattern:\n%s',
 				      sender, subject,
 				      pattern)
@@ -227,7 +228,7 @@ class LibNotifyPlugin(Plugin):
 						i -= 1
 						posi = ' ' + posi
 					posi = '\n' + posi
-				logging.error('pattern is incorrect regexp:\n'+
+				_LOGGER.error('pattern is incorrect regexp:\n'+
 					      'sender: %s, subject: %s\npattern: %s\n%s%s',
 					      sender, subject,	e.msg,
 					      pattern, posi)
@@ -404,7 +405,7 @@ class LibNotifyPlugin(Plugin):
 
 				code = m.group('code')
 				if code:
-					logging.debug("2FA matched code %s: sender=%s, subject=%s",
+					_LOGGER.debug("2FA matched code %s: sender=%s, subject=%s",
 						      code,
 						      sender, subject)
 					break
@@ -413,7 +414,7 @@ class LibNotifyPlugin(Plugin):
 			if subject != _subject:
 				continue
 
-			logging.debug("2FA pre-matched : sender=%s, subject=%s",
+			_LOGGER.debug("2FA pre-matched : sender=%s, subject=%s",
 				      sender, subject)
 
 			# fetch the body text only when sender and subject match
@@ -422,7 +423,7 @@ class LibNotifyPlugin(Plugin):
 				body = mail.fetch_text()
 
 			if body is None:
-				logging.warning("2FA match not achievable: sender=%s, subject=%s\nBody not available.",
+				_LOGGER.warning("2FA match not achievable: sender=%s, subject=%s\nBody not available.",
 						sender, subject)
 				return False
 
@@ -431,13 +432,13 @@ class LibNotifyPlugin(Plugin):
 				continue
 
 			code = m.group('code')
-			logging.debug("2FA matched code %s: sender=%s, subject=%s, body:\n%s",
+			_LOGGER.debug("2FA matched code %s: sender=%s, subject=%s, body:\n%s",
 				      code,
 				      sender, subject,
 				      dbgindent(body))
 			break
 		else:
-			logging.debug("2FA not matched : sender=%s, subject=%s, body:\n%s",
+			_LOGGER.debug("2FA not matched : sender=%s, subject=%s, body:\n%s",
 				      sender, subject,
 				      #dbgindent(body))
 				      '	 '+'\n	'.join(str(body).splitlines()))
@@ -579,9 +580,9 @@ class LibNotifyPlugin(Plugin):
 							     stdin=PIPE,
 							     close_fds=True)
 						pipe.communicate(input=code.encode('utf-8'))
-						logging.debug('xclip set text:%s', code)
+						_LOGGER.debug('xclip set text:%s', code)
 					except:
-						logging.exception('xclip set text failed.')
+						_LOGGER.exception('xclip set text failed.')
 
 					controller.mark_mail_as_read(user_data[0].id)
 				except InvalidOperationException:
@@ -618,25 +619,25 @@ class LibNotifyPlugin(Plugin):
 
 
 	def _on_close(self, widget: Gtk.Dialog) -> None:
-		logging.debug('on_close')
+		_LOGGER.debug('on_close')
 		self._dialog.hide()
 		self._dialog.response(Gtk.ResponseType.CLOSE)
 
 
 	def _on_btn_cancel_clicked(self, widget: Gtk.Button) -> None:
-		logging.debug('on_btn_cancel_clicked')
+		_LOGGER.debug('on_btn_cancel_clicked')
 		self._dialog.hide()
 		self._dialog.response(Gtk.ResponseType.CANCEL)
 
 
 	def _on_btn_ok_clicked(self, widget: Gtk.Button) -> None:
-		logging.debug('on_btn_ok_clicked')
+		_LOGGER.debug('on_btn_ok_clicked')
 		self._dialog.hide()
 		self._dialog.response(Gtk.ResponseType.OK)
 
 
 	def _on_btn_add_provider_clicked(self, widget: Gtk.ToolButton) -> None:
-		logging.debug('on_btn_add_provider_clicked')
+		_LOGGER.debug('on_btn_add_provider_clicked')
 		b = self._builder
 		d = self._dialog
 
@@ -680,7 +681,7 @@ class LibNotifyPlugin(Plugin):
 
 
 	def _on_btn_remove_provider_clicked(self, widget: Gtk.ToolButton) -> None:
-		logging.debug('on_btn_remove_provider_clicked')
+		_LOGGER.debug('on_btn_remove_provider_clicked')
 
 		treeselection = self._treeview_2FA_providers.get_selection()
 		model, iter = treeselection.get_selected()
@@ -751,12 +752,12 @@ class LibNotifyPlugin(Plugin):
 
 
 	def _on_btn_edit_provider_clicked(self, widget: Gtk.ToolButton) -> None:
-		logging.debug('on_btn_edit_provider_clicked')
+		_LOGGER.debug('on_btn_edit_provider_clicked')
 		self._edit_provider()
 
 
 	def _on_provider_toggled(self, cell: Gtk.CellRendererToggle, path: Gtk.TreePath) -> None:
-		logging.debug('on_provider_toggled')
+		_LOGGER.debug('on_provider_toggled')
 		model = self._liststore_2FA_providers
 		iter = model.get_iter(path)
 
@@ -772,7 +773,7 @@ class LibNotifyPlugin(Plugin):
 
 
 	def _on_provider_row_activated(self, view: Gtk.TreeView, path: Gtk.TreePath, column: Gtk.TreeViewColumn) -> None:
-		logging.debug('on_provider_row_activated')
+		_LOGGER.debug('on_provider_row_activated')
 		for  id in ('btn_remove_2FA_provider', 'btn_edit_2FA_provider'):
 			self._builder.get_object(id).set_sensitive(True)
 

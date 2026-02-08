@@ -39,6 +39,7 @@ from Mailnag.common.exceptions import InvalidOperationException
 from Mailnag.common.config import read_cfg
 from Mailnag.common.utils import try_call
 
+_LOGGER = logging.getLogger(__name__)
 
 testmode_mapping = {
 	'auto'				: TestModes.NETWORKMONITOR,	# Legacy, deprecated
@@ -107,12 +108,12 @@ class MailnagDaemon(MailnagController):
 		# clean up resources
 		if (self._start_thread != None) and (self._start_thread.is_alive()):
 			self._start_thread.join()
-			logging.info('Starter thread exited successfully.')
+			_LOGGER.info('Starter thread exited successfully.')
 
 		if (self._poll_thread is not None) and (self._poll_thread.is_alive()):
 			self._poll_thread_stop.set()
 			self._poll_thread.join()
-			logging.info('Polling thread exited successfully.')
+			_LOGGER.info('Polling thread exited successfully.')
 
 		if self._idlrunner is not None:
 			self._idlrunner.dispose()
@@ -190,7 +191,7 @@ class MailnagDaemon(MailnagController):
 			try:
 				self._mailchecker.check(self._accounts)
 			except:
-				logging.exception('Caught an exception.')
+				_LOGGER.exception('Caught an exception.')
 
 			idle_accounts = self._get_idle_accounts(self._accounts)
 			non_idle_accounts = self._get_non_idle_accounts(self._accounts)
@@ -210,7 +211,7 @@ class MailnagDaemon(MailnagController):
 						try:
 							self._mailchecker.check(non_idle_accounts)
 						except:
-							logging.exception('Caught an exception.')
+							_LOGGER.exception('Caught an exception.')
 
 				self._poll_thread = threading.Thread(target = poll_func)
 				self._poll_thread.start()
@@ -225,7 +226,7 @@ class MailnagDaemon(MailnagController):
 				self._idlrunner = IdlerRunner(idle_accounts, sync_func, idle_timeout)
 				self._idlrunner.start()
 		except Exception as ex:
-			logging.exception('Caught an exception.')
+			_LOGGER.exception('Caught an exception.')
 			if self._fatal_error_handler is not None:
 				self._fatal_error_handler(ex)
 	
@@ -233,7 +234,7 @@ class MailnagDaemon(MailnagController):
 	def _wait_for_inet_connection(self) -> bool:
 		"""Wait that internet connection is available."""
 		if self._conntest.is_offline():
-			logging.info('Waiting for internet connection...')
+			_LOGGER.info('Waiting for internet connection...')
 		
 		while True:
 			if self._disposed:
@@ -266,9 +267,9 @@ class MailnagDaemon(MailnagController):
 		for p in self._plugins:
 			try:
 				p.enable()
-				logging.info("Successfully enabled plugin '%s'." % p.get_modname())
+				_LOGGER.info("Successfully enabled plugin '%s'." % p.get_modname())
 			except:
-				logging.error("Failed to enable plugin '%s'." % p.get_modname())
+				_LOGGER.error("Failed to enable plugin '%s'." % p.get_modname())
 	
 
 	def _unload_plugins(self) -> None:
@@ -281,9 +282,9 @@ class MailnagDaemon(MailnagController):
 					p.disable()
 				except:
 					err = True
-					logging.error("Failed to disable plugin '%s'." % p.get_modname())
+					_LOGGER.error("Failed to disable plugin '%s'." % p.get_modname())
 		
 			if not err:
-				logging.info('Plugins disabled successfully.')
+				_LOGGER.info('Plugins disabled successfully.')
 
 

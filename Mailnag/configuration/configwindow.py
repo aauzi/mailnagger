@@ -21,6 +21,7 @@
 import gi
 gi.require_version('Gtk', '3.0')
 
+import logging
 import os
 import xdg.BaseDirectory as bd
 from gi.repository import Gtk
@@ -35,6 +36,7 @@ from mailnagger.resources import get_resource_text
 import Mailnag.configuration.ui
 import Mailnag.configuration.desktop
 
+_LOGGER = logging.getLogger(__name__)
 
 class ConfigWindow:
 	def __init__(self, app):
@@ -262,7 +264,7 @@ class ConfigWindow:
 				f.write(strn)
 		except Exception as e:
 			import logging
-			logging.info(f"failed setting autostart: {e}")
+			_LOGGER.info(f"failed setting autostart: {e}")
 			return
 
 

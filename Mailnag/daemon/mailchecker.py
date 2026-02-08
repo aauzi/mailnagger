@@ -30,6 +30,7 @@ from Mailnag.daemon.conntest import ConnectivityTest
 from Mailnag.daemon.dbus import DBusService
 from Mailnag.daemon.mails import MailSyncer, Memorizer, Mail
 
+_LOGGER = logging.getLogger(__name__)
 
 class MailChecker:
 
@@ -56,13 +57,15 @@ class MailChecker:
 		# make sure multiple threads (idler and polling thread) 
 		# don't check for mails simultaneously.
 		with self._mailcheck_lock:
-			logging.info('Checking %s email account(s).' % len(accounts))
+			_LOGGER.info('Checking %s email account(s).' % len(accounts))
+			if _LOGGER.getEffectiveLevel() == logging.DEBUG and len(accounts):
+				_LOGGER.debug("Accounts:\n  - %s", '\n  - '.join([a.name for a in accounts]))
 			
 			for f in self._hookreg.get_hook_funcs(HookTypes.MAIL_CHECK):
 				try_call(f, None)
 				
 			if self._conntest.is_offline():
-				logging.warning('No internet connection.')
+				_LOGGER.warning('No internet connection.')
 				return
 			
 			all_mails = self._mailsyncer.sync(accounts)

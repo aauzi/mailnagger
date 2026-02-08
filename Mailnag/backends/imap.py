@@ -111,16 +111,16 @@ class IMAPMailboxBackend(MailboxBackend):
 			try:
 				status, data = conn.uid('SEARCH', None, '(UNSEEN)') # ALL or UNSEEN
 			except:
-				logging.warning('Folder %s does not exist.', folder)
+				_LOGGER.warning('Folder %s does not exist.', folder)
 				continue
 
 			if status != 'OK' or None in [d for d in data]:
-				logging.debug('Folder %s in status %s | Data: %s', (folder, status, data))
+				_LOGGER.debug('Folder %s in status %s | Data: %s', (folder, status, data))
 				continue # Bugfix LP-735071
 			
 			for num in data[0].split():
 				typ, msg_data = conn.uid('FETCH', num, '(BODY.PEEK[HEADER])') # header (without setting READ flag)
-				logging.debug("Msg data (length=%d):\n%s", len(msg_data),
+				_LOGGER.debug("Msg data (length=%d):\n%s", len(msg_data),
 					      dbgindent(msg_data))
 				header = None
 				for response_part in msg_data:
@@ -128,7 +128,7 @@ class IMAPMailboxBackend(MailboxBackend):
 						if b'BODY[HEADER]' in response_part[0]:
 							header = email.message_from_bytes(response_part[1])
 				if header:
-					logging.debug("Msg header:\n%s",
+					_LOGGER.debug("Msg header:\n%s",
 						      dbgindent(header))
 					yield (folder, header, num.decode("utf-8"), { 'folder' : folder })
 
@@ -148,7 +148,7 @@ class IMAPMailboxBackend(MailboxBackend):
 		conn = self._conn
 
 		typ, msg_data = conn.uid('FETCH', mail.uid.encode('utf-8'), '(RFC822)') # body text (without setting READ flag)
-		logging.debug("Msg data (length=%d):\n%s", len(msg_data),
+		_LOGGER.debug("Msg data (length=%d):\n%s", len(msg_data),
 			      dbgindent(msg_data))
 
 		bbb = b''
@@ -179,7 +179,7 @@ class IMAPMailboxBackend(MailboxBackend):
 			match = re.match(r'.+\s+("."|"?NIL"?)\s+"?([^"]+)"?$', d.decode('utf-8'))
 
 			if match is None:
-				logging.warning("Folder format not supported.")
+				_LOGGER.warning("Folder format not supported.")
 			else:
 				folder = match.group(2)
 				lst.append(decode_mutf7(folder))
@@ -209,7 +209,7 @@ class IMAPMailboxBackend(MailboxBackend):
 							last_folder = folder
 						status, data = conn.uid("STORE", m.flags['uid'], "+FLAGS", r"(\Seen)")
 					except:
-						logging.warning("Failed to set mail with uid %s to seen on server (account: '%s').", m.flags['uid'], self.name)
+						_LOGGER.warning("Failed to set mail with uid %s to seen on server (account: '%s').", m.flags['uid'], self.name)
 
 		finally:
 			self._disconnect(conn)
@@ -306,7 +306,7 @@ class IMAPMailboxBackend(MailboxBackend):
 				if 'STARTTLS' in conn.capabilities:
 					conn.starttls()
 				else:
-					logging.warning("Using unencrypted connection for account '%s'" % self.name)
+					_LOGGER.warning("Using unencrypted connection for account '%s'" % self.name)
 
 			if self.oauth2string != '':
 				self._refresh_token()

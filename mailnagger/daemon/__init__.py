@@ -42,6 +42,8 @@ from Mailnag.common.subproc import terminate_subprocesses
 from Mailnag.common.exceptions import InvalidOperationException
 from Mailnag.daemon.mailnagdaemon import MailnagDaemon
 
+_LOGGER = logging.getLogger(__name__)
+
 PROGNAME = 'mailnagger'
 LOG_LEVEL = logging.DEBUG
 
@@ -62,11 +64,11 @@ def cleanup(daemon: Optional[MailnagDaemon]) -> None:
     event.wait(10.0)
 
     if not event.is_set():
-        logging.warning('Cleanup takes too long. Enforcing termination.')
+        _LOGGER.warning('Cleanup takes too long. Enforcing termination.')
         os._exit(os.EX_SOFTWARE)
 
     if threading.active_count() > 1:
-        logging.warning('There are still active threads. Enforcing termination.')
+        _LOGGER.warning('There are still active threads. Enforcing termination.')
         os._exit(os.EX_SOFTWARE)
 
 
@@ -122,7 +124,7 @@ def main() -> int:
 
     try:
         if not cfg_exists():
-            logging.critical(
+            _LOGGER.critical(
                 "Cannot find configuration file. " +
                 "Please run mailnagger-config first.")
             exit(1)
@@ -150,7 +152,7 @@ def main() -> int:
     except KeyboardInterrupt:
         pass # ctrl+c pressed
     finally:
-        logging.info('Shutting down...')
+        _LOGGER.info('Shutting down...')
         cleanup(daemon)
 
     return os.EX_OK

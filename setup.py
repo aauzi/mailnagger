@@ -27,7 +27,7 @@ app_version = (this_directory / "VERSION").read_text().strip()
 
 long_description = (this_directory / "README.md").read_text()
 
-logger = logging.getLogger(__name__)
+_LOGGER = logging.getLogger(__name__)
 
 # TODO : This hack won't work with --user and --home options
 PREFIX = sysconfig.get_path('data')
@@ -56,8 +56,8 @@ class BuildData(build):
                 else: err = "UNKNOWN_ERR"
                 raise Warning("gen_locales returned %d (%s)" % (rc, err))
         except Exception as e:
-            logger.error("Building locales failed.")
-            logger.error("Error: %s" % str(e))
+            _LOGGER.error("Building locales failed.")
+            _LOGGER.error("Error: %s" % str(e))
             sys.exit(1)
 
         # remove patch dir (if existing)
