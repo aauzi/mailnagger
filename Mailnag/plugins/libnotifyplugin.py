@@ -32,6 +32,9 @@ import threading
 import re
 from subprocess import Popen, PIPE
 import logging
+import json
+import csv
+import copy
 from collections.abc import Callable
 from typing import Any, Optional
 from gi.repository import Notify, Gio, Gtk
@@ -42,6 +45,7 @@ from Mailnag.common.subproc import start_subprocess
 from Mailnag.common.exceptions import InvalidOperationException
 from Mailnag.daemon.mails import Mail
 from Mailnag.common.utils import dbgindent
+from Mailnag.common.config import cfg_folder
 from mailnagger.resources import get_resource_text
 import Mailnag.plugins
 
@@ -56,15 +60,20 @@ _LOGGER = logging.getLogger(__name__)
 DESKTOP_ENV_VARS_FOR_SUPPORT_TEST = ('XDG_CURRENT_DESKTOP', 'GDMSESSION')
 SUPPORTED_DESKTOP_ENVIRONMENTS = ("gnome", "cinnamon")
 
+cfg_2fa_providers_file_json = os.path.join(cfg_folder, '2fa_providers.json')
+cfg_2fa_providers_file = os.path.join(cfg_folder, '2fa_providers.tsv')
+
 plugin_defaults = {
 	'notification_mode' : NOTIFICATION_MODE_SHORT_SUMMARY,
 	'max_visible_mails' : '10',
 	'2fa_notifications' : True,
-	'2fa_providers': [
-		(True, 'Garmin', 'Your Security Passcode',    r'<strong[^>]*>{code}</strong>'),
-		(True, 'Garmin', _('Your Security Passcode'), r'<strong[^>]*>{code}</strong>'),
-	],
 }
+
+_2fa_providers_keys = ('enabled', 'provider', 'subject_re', 'text_re')
+default_2fa_providers = [
+	(True, 'Garmin', 'Your Security Passcode',    r'<strong[^>]*>{code}</strong>'),
+	(True, 'Garmin', _('Your Security Passcode'), r'<strong[^>]*>{code}</strong>'),
+]
 
 class LibNotifyPlugin(Plugin):
 	def __init__(self) -> None:
@@ -188,6 +197,7 @@ class LibNotifyPlugin(Plugin):
 			'btn_edit_provider_clicked':	self._on_btn_edit_provider_clicked,
 			'provider_toggled':		self._on_provider_toggled,
 			'provider_row_activated':	self._on_provider_row_activated,
+			'expander_2fa_providers_expanded': self._on_expander_2fa_providers_expanded,
 		})
 
 		self._builder = builder
@@ -196,7 +206,16 @@ class LibNotifyPlugin(Plugin):
 		self._switch_2FA_notifications = builder.get_object('switch_2FA_notifications')
 		self._liststore_2FA_providers = builder.get_object('liststore_2FA_providers')
 		self._treeview_2FA_providers = builder.get_object('treeview_2FA_providers')
+
+		self._scrolled_window = builder.get_object('scrolledwindow1')
+		self._scrolled_window.set_min_content_height(120)
+		self._scrolled_window.set_min_content_width(348)
+		self._scrolled_window.set_propagate_natural_height(True)
+		self._scrolled_window.set_propagate_natural_width(True)
+		self._scrolled_window.set_max_content_height(348)
+		
 		return builder.get_object('box1')
+
 
 	@staticmethod
 	def _eval_2fa_providers(providers: list|str) -> list:
@@ -235,17 +254,73 @@ class LibNotifyPlugin(Plugin):
 
 		return ret
 
+	def get_config(self):
+		config = super().get_config()
+		config['2fa_providers'] = self._load_2fa_provider_from_config(config)
+		return config
+
+	def _load_2fa_provider_from_config(self, config):
+		lv = None
+		try:
+			# Version CSV 
+			with open(cfg_2fa_providers_file, 'r', encoding='utf-8') as fin:
+				lv = list(csv.DictReader(fin, fieldnames=_2fa_providers_keys, delimiter='\t'))
+		except FileNotFoundError:
+			pass
+			# Version json
+			with open(cfg_2fa_providers_file_json, 'r', encoding='utf-8') as fin:
+				lv = json.load(fin)
+		except FileNotFoundError:
+			pass
+		if lv is not None:
+			providers = []
+			for v in lv:
+				values = []
+				if isinstance(v, dict):
+					for k in _2fa_providers_keys:
+						if k in v:
+							values.append(v[k])
+				elif isinstance(v, list):
+					values = copy.deepcopy(v)
+					
+				if isinstance(values[0], str):
+					if values[0].lower() in ('y', 'yes', 'true', 'on'):
+						values[0] = True
+					else:
+						values[0] = False
+				if len(values) == len(_2fa_providers_keys):
+					providers.append(values)
+			return providers
+		
+		if '2fa_providers' in config:
+			return self._eval_2fa_providers(config['2fa_providers'])
+		
+		return copy.deepcopy(default_2fa_providers)
 
 	def load_ui_from_config(self, config_ui: Gtk.Widget) -> None:
 		config = self.get_config()
 		radio = [r for m, r in self._radio_mapping if m == config['notification_mode']][0]
 		radio.set_active(True)
 		self._switch_2FA_notifications.set_active(config['2fa_notifications'])
-		providers = self._eval_2fa_providers(config['2fa_providers'])
+		providers = config['2fa_providers']
 		for (_enabled, _sender, _subject, _pattern) in providers:
 			if _enabled and not self._check_2fa_provider_pattern(_sender, _subject, _pattern):
 				_enabled = False
 			self._liststore_2FA_providers.append([_enabled, _sender, _subject, _pattern])
+
+	def _save_2fa_provider_to_config(self, providers):
+		named_providers = []
+		for v in providers:
+			nv = dict()
+			for i in range(len(_2fa_providers_keys)):
+				k = _2fa_providers_keys[i]
+				nv[k] = v[i]
+			named_providers.append(nv)
+		with open(cfg_2fa_providers_file, 'wt', encoding='utf-8') as fout:
+			#json.dump(named_providers, fout, indent=2, ensure_ascii=False)
+			w = csv.DictWriter(fout, fieldnames=_2fa_providers_keys, delimiter='\t')
+			w.writeheader()
+			w.writerows(named_providers)
 
 
 	def save_ui_to_config(self, config_ui: Gtk.Widget) -> None:
@@ -256,8 +331,9 @@ class LibNotifyPlugin(Plugin):
 		providers = []
 		for row in self._liststore_2FA_providers:
 			providers.append(tuple(row))
-		config['2fa_providers']=providers
-
+		self._save_2fa_provider_to_config(providers)
+		if '2fa_providers' in config:
+			del config['2fa_providers']
 
 
 	def _notify_async(self, new_mails: list[Mail], all_mails: list[Mail]) -> None:
@@ -776,6 +852,13 @@ class LibNotifyPlugin(Plugin):
 		_LOGGER.debug('on_provider_row_activated')
 		for  id in ('btn_remove_2FA_provider', 'btn_edit_2FA_provider'):
 			self._builder.get_object(id).set_sensitive(True)
+
+
+	def _on_expander_2fa_providers_expanded(self, expander, pspec) -> None:
+		wnd = expander.get_toplevel()
+
+		w = wnd.get_size().width
+		wnd.resize(w, 1)
 
 
 def ellipsize(str: str, max_len: int) -> str:

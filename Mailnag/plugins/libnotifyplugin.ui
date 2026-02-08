@@ -126,6 +126,7 @@
         <property name="can-focus">False</property>
         <property name="label-fill">True</property>
         <property name="resize-toplevel">True</property>
+        <signal name="notify::expanded" handler="expander_2fa_providers_expanded" object="box1" swapped="no"/>
         <child>
           <object class="GtkBox" id="treeview_box">
             <property name="visible">True</property>
