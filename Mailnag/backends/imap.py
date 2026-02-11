@@ -139,7 +139,7 @@ class IMAPMailboxBackend(MailboxBackend):
 		if text is not None:
 			return text
 
-		loggin.warning('Retry fetch_text.')
+		_LOGGER.warning('Retry fetch_text.')
 		return self._fetch_text(mail)
 
 	def _fetch_text(self, mail: Mail) -> str | None:
@@ -147,7 +147,8 @@ class IMAPMailboxBackend(MailboxBackend):
 		assert self._conn is not None
 		conn = self._conn
 
-		typ, msg_data = conn.uid('FETCH', mail.uid.encode('utf-8'), '(RFC822)') # body text (without setting READ flag)
+		#AAU#typ, msg_data = conn.uid('FETCH', mail.uid.encode('utf-8'), '(RFC822)') # body text (setting READ flag)
+		typ, msg_data = conn.uid('FETCH', mail.uid.encode('utf-8'), '(BODY.PEEK[])') # body text (without setting READ flag)
 		_LOGGER.debug("Msg data (length=%d):\n%s", len(msg_data),
 			      dbgindent(msg_data))
 
