@@ -60,7 +60,6 @@ _LOGGER = logging.getLogger(__name__)
 DESKTOP_ENV_VARS_FOR_SUPPORT_TEST = ('XDG_CURRENT_DESKTOP', 'GDMSESSION')
 SUPPORTED_DESKTOP_ENVIRONMENTS = ("gnome", "cinnamon")
 
-cfg_2fa_providers_file_json = os.path.join(cfg_folder, '2fa_providers.json')
 cfg_2fa_providers_file = os.path.join(cfg_folder, '2fa_providers.tsv')
 
 plugin_defaults = {
@@ -71,8 +70,8 @@ plugin_defaults = {
 
 _2fa_providers_keys = ('enabled', 'provider', 'subject_re', 'text_re')
 default_2fa_providers = [
-	(True, 'Garmin', 'Your Security Passcode',    r'<strong[^>]*>{code}</strong>'),
-	(True, 'Garmin', _('Your Security Passcode'), r'<strong[^>]*>{code}</strong>'),
+	(True, 'Garmin', 'Your Security Passcode',    r'Use this one-time code for your account\n{code}\n'),
+	(True, 'Garmin', _('Your Security Passcode'), r'voici votre code de sécurité.\n{code}\n'),
 ]
 
 class LibNotifyPlugin(Plugin):
@@ -262,14 +261,8 @@ class LibNotifyPlugin(Plugin):
 	def _load_2fa_provider_from_config(self, config):
 		lv = None
 		try:
-			# Version CSV 
 			with open(cfg_2fa_providers_file, 'r', encoding='utf-8') as fin:
 				lv = list(csv.DictReader(fin, fieldnames=_2fa_providers_keys, delimiter='\t'))
-		except FileNotFoundError:
-			pass
-			# Version json
-			with open(cfg_2fa_providers_file_json, 'r', encoding='utf-8') as fin:
-				lv = json.load(fin)
 		except FileNotFoundError:
 			pass
 		if lv is not None:
@@ -317,7 +310,6 @@ class LibNotifyPlugin(Plugin):
 				nv[k] = v[i]
 			named_providers.append(nv)
 		with open(cfg_2fa_providers_file, 'wt', encoding='utf-8') as fout:
-			#json.dump(named_providers, fout, indent=2, ensure_ascii=False)
 			w = csv.DictWriter(fout, fieldnames=_2fa_providers_keys, delimiter='\t')
 			w.writeheader()
 			w.writerows(named_providers)
