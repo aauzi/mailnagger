@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: mailnag\n"
 "Report-Msgid-Bugs-To: https://github.com/tikank/mailnagger/issues\n"
-"POT-Creation-Date: 2025-11-17 21:03+0100\n"
+"POT-Creation-Date: 2026-02-11 23:22+0100\n"
 "PO-Revision-Date: 2020-10-15 17:26+0000\n"
 "Last-Translator: J. Lavoie <j.lavoie@net-c.ca>\n"
 "Language-Team: Italian <https://hosted.weblate.org/projects/mailnag/mailnag/"
@@ -19,7 +19,7 @@ msgstr ""
 "X-Poedit-SourceCharset: UTF-8\n"
 "X-Loco-Target-Locale: it_IT\n"
 
-#: Mailnag/daemon/mails.py:183
+#: Mailnag/daemon/mails.py:283
 msgid "No subject"
 msgstr "Nessun oggetto"
 
@@ -32,15 +32,15 @@ msgid "optional"
 msgstr "opzionale"
 
 #: Mailnag/configuration/accountdialog.py:123
-#: Mailnag/configuration/configwindow.py:88
-#: Mailnag/configuration/configwindow.py:108
-#: Mailnag/plugins/libnotifyplugin.ui.h:14
+#: Mailnag/configuration/configwindow.py:90
+#: Mailnag/configuration/configwindow.py:110
+#: Mailnag/plugins/libnotifyplugin.ui.h:6
 msgid "Enabled"
 msgstr "Attivo"
 
 #: Mailnag/configuration/accountdialog.py:129
-#: Mailnag/configuration/configwindow.py:94
-#: Mailnag/configuration/configwindow.py:114
+#: Mailnag/configuration/configwindow.py:96
+#: Mailnag/configuration/configwindow.py:116
 msgid "Name"
 msgstr "Nome"
 
@@ -64,30 +64,30 @@ msgstr "Maildir (personalizzato)"
 msgid "Connection failed."
 msgstr "Connessione fallita."
 
-#: Mailnag/configuration/configwindow.py:278
+#: Mailnag/configuration/configwindow.py:280
 msgid "About Mailnagger"
 msgstr ""
 
-#: Mailnag/configuration/configwindow.py:281
+#: Mailnag/configuration/configwindow.py:283
 msgid "An extensible mail notification daemon."
 msgstr "Un demone di notifica di e-mail estensibile."
 
-#: Mailnag/configuration/configwindow.py:283
+#: Mailnag/configuration/configwindow.py:285
 #, fuzzy, python-brace-format
 msgid "Copyright (c) {years} {author} and contributors."
 msgstr "Copyright © 2011 – 2020 Patrick Ulbrich e i collaboratori."
 
-#: Mailnag/configuration/configwindow.py:290
+#: Mailnag/configuration/configwindow.py:292
 msgid "Homepage"
 msgstr "Pagina principale"
 
-#: Mailnag/configuration/configwindow.py:293
+#: Mailnag/configuration/configwindow.py:295
 msgid "maintainer"
 msgstr ""
 
 #. TRANSLATORS: Translate `translator-credits` to the list of names
 #. of translators, or team, or something like that.
-#: Mailnag/configuration/configwindow.py:313
+#: Mailnag/configuration/configwindow.py:315
 msgid "translator-credits"
 msgstr ""
 "Launchpad Contributions:\n"
@@ -96,7 +96,7 @@ msgstr ""
 "  Patrick Ulbrich https://launchpad.net/~pulb\n"
 "  Pedro Beja https://launchpad.net/~althaser"
 
-#: Mailnag/configuration/configwindow.py:353
+#: Mailnag/configuration/configwindow.py:355
 msgid "Delete this account:"
 msgstr "Eliminare questo account:"
 
@@ -135,84 +135,84 @@ msgstr ""
 "Mailnag passa il conteggio totale dei nuovi messaggi a questo script,\n"
 "seguito da %s sequenze."
 
-#: Mailnag/plugins/libnotifyplugin.py:64
+#: Mailnag/plugins/libnotifyplugin.py:74
 msgid "Your Security Passcode"
 msgstr ""
 
-#: Mailnag/plugins/libnotifyplugin.py:134
+#: Mailnag/plugins/libnotifyplugin.py:143
 msgid "LibNotify Notifications"
 msgstr "Notifiche LibNotify"
 
-#: Mailnag/plugins/libnotifyplugin.py:135
+#: Mailnag/plugins/libnotifyplugin.py:144
 msgid "Shows a popup when new mails arrive."
 msgstr "Mostra un popup all'arrivo di nuove e-mail."
 
-#: Mailnag/plugins/libnotifyplugin.py:177
+#: Mailnag/plugins/libnotifyplugin.py:186
 msgid "Notification mode:"
 msgstr "Modalità di notifica:"
 
-#: Mailnag/plugins/libnotifyplugin.py:179
+#: Mailnag/plugins/libnotifyplugin.py:188
 msgid "2FA providers"
 msgstr ""
 
-#: Mailnag/plugins/libnotifyplugin.py:322
-#: Mailnag/plugins/libnotifyplugin.py:358
-#: Mailnag/plugins/libnotifyplugin.py:487
+#: Mailnag/plugins/libnotifyplugin.py:391
+#: Mailnag/plugins/libnotifyplugin.py:427
+#: Mailnag/plugins/libnotifyplugin.py:577
 #, python-brace-format
 msgid "{0} new mails"
 msgstr "{0} nuove e-mail"
 
-#: Mailnag/plugins/libnotifyplugin.py:324
+#: Mailnag/plugins/libnotifyplugin.py:393
 #, python-brace-format
 msgid "from {0} and others."
 msgstr "da {0} e altri."
 
-#: Mailnag/plugins/libnotifyplugin.py:326
-#: Mailnag/plugins/libnotifyplugin.py:329
+#: Mailnag/plugins/libnotifyplugin.py:395
+#: Mailnag/plugins/libnotifyplugin.py:398
 #, python-brace-format
 msgid "from {0}."
 msgstr "da {0}."
 
-#: Mailnag/plugins/libnotifyplugin.py:328
-#: Mailnag/plugins/libnotifyplugin.py:360
-#: Mailnag/plugins/libnotifyplugin.py:489
+#: Mailnag/plugins/libnotifyplugin.py:397
+#: Mailnag/plugins/libnotifyplugin.py:429
+#: Mailnag/plugins/libnotifyplugin.py:579
 msgid "New mail"
 msgstr "Nuova e-mail"
 
-#: Mailnag/plugins/libnotifyplugin.py:353
-#: Mailnag/plugins/libnotifyplugin.py:355
+#: Mailnag/plugins/libnotifyplugin.py:422
+#: Mailnag/plugins/libnotifyplugin.py:424
 #, python-brace-format
 msgid "(and {0} more)"
 msgstr "(e altri {0})"
 
-#: Mailnag/plugins/libnotifyplugin.py:432
+#: Mailnag/plugins/libnotifyplugin.py:522
 #, python-brace-format
 msgid "📋 Code: {0}"
 msgstr ""
 
-#: Mailnag/plugins/libnotifyplugin.py:476
+#: Mailnag/plugins/libnotifyplugin.py:566
 msgid "Mark as read"
 msgstr "Contrassegna come \\\"già letto\\\""
 
-#: Mailnag/plugins/libnotifyplugin.py:675
+#: Mailnag/plugins/libnotifyplugin.py:765
 #, fuzzy
 msgid "Delete this provider:"
 msgstr "Eliminare questo account:"
 
-#: Mailnag/plugins/libnotifyplugin.py:676
-#: Mailnag/plugins/libnotifyplugin.ui.h:1
+#: Mailnag/plugins/libnotifyplugin.py:766
+#: Mailnag/plugins/libnotifyplugin.ui.h:15
 #, fuzzy
 msgid "Sender:"
 msgstr "Mittente"
 
-#: Mailnag/plugins/libnotifyplugin.py:677
-#: Mailnag/plugins/libnotifyplugin.ui.h:3
+#: Mailnag/plugins/libnotifyplugin.py:767
+#: Mailnag/plugins/libnotifyplugin.ui.h:16
 #, fuzzy
 msgid "Subject:"
 msgstr "Oggetto"
 
-#: Mailnag/plugins/libnotifyplugin.py:678
-#: Mailnag/plugins/libnotifyplugin.ui.h:5
+#: Mailnag/plugins/libnotifyplugin.py:768
+#: Mailnag/plugins/libnotifyplugin.ui.h:17
 msgid "Pattern:"
 msgstr ""
 
@@ -324,70 +324,70 @@ msgstr "Plugin"
 msgid "Info"
 msgstr "Informazioni"
 
-#: Mailnag/plugins/libnotifyplugin.ui.h:2
-#, fuzzy
-msgid "Sender"
-msgstr "Mittente"
-
-#: Mailnag/plugins/libnotifyplugin.ui.h:4
-#, fuzzy
-msgid "Subject"
-msgstr "Oggetto"
-
-#: Mailnag/plugins/libnotifyplugin.ui.h:6
-msgid "Pattern"
-msgstr ""
-
-#: Mailnag/plugins/libnotifyplugin.ui.h:7
-msgid "Edit 2FA provider"
-msgstr ""
-
-#: Mailnag/plugins/libnotifyplugin.ui.h:8
-#, fuzzy
-msgid "Enable provider"
-msgstr "Attivo"
-
-#: Mailnag/plugins/libnotifyplugin.ui.h:9
+#: Mailnag/plugins/libnotifyplugin.ui.h:1
 msgid "Count of new mails"
 msgstr "Numero di nuove e-mail"
 
-#: Mailnag/plugins/libnotifyplugin.ui.h:10
+#: Mailnag/plugins/libnotifyplugin.ui.h:2
 msgid "Short summary of new mails"
 msgstr "Breve riepilogo delle nuove e-mail"
 
-#: Mailnag/plugins/libnotifyplugin.ui.h:11
+#: Mailnag/plugins/libnotifyplugin.ui.h:3
 msgid "Detailed summary of new mails"
 msgstr "Riepilogo dettagliato delle nuove e-mail"
 
-#: Mailnag/plugins/libnotifyplugin.ui.h:12
+#: Mailnag/plugins/libnotifyplugin.ui.h:4
 msgid "One notification per new mail"
 msgstr "Una notifica ogni nuova e-mail"
 
-#: Mailnag/plugins/libnotifyplugin.ui.h:13
+#: Mailnag/plugins/libnotifyplugin.ui.h:5
 #, fuzzy
 msgid "Only 2FA notification, when enabled"
 msgstr "Una notifica ogni nuova e-mail"
 
-#: Mailnag/plugins/libnotifyplugin.ui.h:15
+#: Mailnag/plugins/libnotifyplugin.ui.h:7
+#, fuzzy
+msgid "Sender"
+msgstr "Mittente"
+
+#: Mailnag/plugins/libnotifyplugin.ui.h:8
+#, fuzzy
+msgid "Subject"
+msgstr "Oggetto"
+
+#: Mailnag/plugins/libnotifyplugin.ui.h:9
+msgid "Pattern"
+msgstr ""
+
+#: Mailnag/plugins/libnotifyplugin.ui.h:10
 msgid "Add 2FA Provider"
 msgstr ""
 
-#: Mailnag/plugins/libnotifyplugin.ui.h:16
+#: Mailnag/plugins/libnotifyplugin.ui.h:11
 msgid "Remove 2FA Provider"
 msgstr ""
 
-#: Mailnag/plugins/libnotifyplugin.ui.h:17
+#: Mailnag/plugins/libnotifyplugin.ui.h:12
 msgid "Edit 2FA Provider"
 msgstr ""
 
-#: Mailnag/plugins/libnotifyplugin.ui.h:18
+#: Mailnag/plugins/libnotifyplugin.ui.h:13
 #, fuzzy
 msgid "2FA notifications"
 msgstr "Notifiche audio"
 
-#: Mailnag/plugins/libnotifyplugin.ui.h:19
+#: Mailnag/plugins/libnotifyplugin.ui.h:14
 msgid "Enable/disable libnotify 2FA processing"
 msgstr ""
+
+#: Mailnag/plugins/libnotifyplugin.ui.h:18
+msgid "Edit 2FA provider"
+msgstr ""
+
+#: Mailnag/plugins/libnotifyplugin.ui.h:19
+#, fuzzy
+msgid "Enable provider"
+msgstr "Attivo"
 
 #, fuzzy
 #~ msgid "Garmin 2FA LibNotify Notifications"
