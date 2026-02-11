@@ -27,6 +27,9 @@ import email.utils
 import os
 import logging
 import hashlib
+import re
+import html
+from html.parser import HTMLParser
 
 from io import StringIO
 from configparser import RawConfigParser
@@ -42,36 +45,122 @@ _LOGGER = logging.getLogger(__name__)
 if TYPE_CHECKING:
 	from Mailnag.common.accounts import Account
 
+def clean_html(raw_html: str) -> str:
+	if not raw_html:
+		return ''
 
-def message_text(msg: Message) -> str:
+	class HTMLTextExtractor(HTMLParser):
+		BLOCK_TAGS = {
+			'p', 'div', 'br', 'hr', 'h1', 'h2', 'h3',
+			'h4', 'h5', 'h6', 'li', 'tr', 'header', 'footer'
+		}
+		START_SPACED_TAGS = {'a'}
+		END_SPACED_TAGS = {'td', 'th', 'a'}
+		IGNORE_TAGS = {'style', 'script', 'head', 'meta', 'title'}
+
+		def __init__(self):
+			super().__init__()
+			self.result = []
+			self.ignore = False
+
+		def _handle_newline(self):
+			if self.result and self.result[-1] != '\n':
+				self.result.append('\n')
+
+		def _handle_space(self):
+			if (self.result
+			    and not self.result[-1][-1:].isdigit()
+			    and self.result[-1] != '\n'):
+				self.result.append(' ')
+
+		def handle_starttag(self, tag, attrs):
+			if tag in self.IGNORE_TAGS:
+				self.ignore = True
+
+			if self.ignore:
+				return
+
+			if tag in self.START_SPACED_TAGS:
+				self._handle_space()
+
+		def handle_endtag(self, tag):
+			if tag in self.IGNORE_TAGS:
+				self.ignore = False
+				return
+
+			if self.ignore:
+				return
+
+			if tag in self.END_SPACED_TAGS:
+				self._handle_space()
+			elif tag in self.BLOCK_TAGS:
+				self._handle_newline()
+
+		def handle_data(self, data):
+			if self.ignore:
+				return
+
+			cleaned_data = data.strip()
+			if cleaned_data:
+				self.result.append(cleaned_data)
+
+		def get_text(self):
+			full_text = "".join(self.result)
+
+			lines = [line.strip() for line in full_text.splitlines()]
+			clean_text = "\n".join(lines)
+			clean_text = re.sub(r'[ \t]+', ' ', clean_text)
+			return re.sub(r'\n{2,}', '\n\n', clean_text).strip()
+
+	parser = HTMLTextExtractor()
+	parser.feed(raw_html)
+	return parser.get_text()
+
+def dumps(text):
+	with open('dumps.txt', 'w', encoding='utf-8') as fout:
+		fout.write(text)
+	return text
+
+def message_text(msg: Message) -> str | None:
 	"""Extract the text body of the given message.
 	"""
 
-	txt = ''
+	txt = None
+	html_txt = None
 	for part in msg.walk():
-		if 'text' != part.get_content_maintype():
+		if part.is_multipart():
 			continue
 
-		content_transfer_encoding = part.get('Content-Transfer-Encoding')
 		content_type = part.get_content_type()
-		charset = part.get_content_charset()
 
-		if charset is None:
-		       charset = 'ascii'
+		if content_type not in ('text/plain', 'text/html'):
+			continue
 
-		if content_transfer_encoding == 'quoted-printable':
-			from quopri import decodestring
-			txt += decodestring(part.get_payload()).decode(charset)
-		elif content_transfer_encoding == 'base64':
-			from base64 import b64decode
-			txt += b64decode(part.get_payload()).decode(charset)
-		else:
-			txt += part.get_payload()
+		payload = part.get_payload(decode=True)
+		if not payload:
+			continue
 
-	if not len(txt):
-		return None
+		charset = part.get_content_charset() or 'utf-8'
+		try:
+			content = payload.decode(charset, errors='replace')
+		except Exception:
+			content = payload.decode('latin-1', errors='replace')
 
-	return txt
+		if content_type == 'text/plain':
+			# On a trouvé la version texte brut, c'est l'idéal pour les codes !
+			txt = content.strip()
+			if txt:
+				break
+		elif content_type == 'text/html':
+			html_txt = content.strip()
+
+	if txt:
+		return txt
+
+	if html_txt:
+		return clean_html(html_txt)
+
+	return None
 
 
 #
