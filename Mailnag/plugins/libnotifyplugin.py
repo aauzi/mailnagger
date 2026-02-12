@@ -55,7 +55,7 @@ NOTIFICATION_MODE_SUMMARY = '1'
 NOTIFICATION_MODE_SINGLE = '2'
 NOTIFICATION_MODE_SILENT = '4'
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = logging.getLogger('Mailnag.plugins.' + __name__)
 
 DESKTOP_ENV_VARS_FOR_SUPPORT_TEST = ('XDG_CURRENT_DESKTOP', 'GDMSESSION')
 SUPPORTED_DESKTOP_ENVIRONMENTS = ("gnome", "cinnamon")
