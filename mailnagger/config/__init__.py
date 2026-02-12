@@ -35,7 +35,7 @@ from Mailnag.common.dist_cfg import BIN_DIR
 from Mailnag.configuration.configwindow import ConfigWindow
 from mailnagger.resources import get_icon_paths
 
-LOG_LEVEL = logging.DEBUG
+LOG_LEVEL = logging.WARNING
 
 
 class App(Gtk.Application):
@@ -49,8 +49,8 @@ class App(Gtk.Application):
     def do_startup(self) -> None:
         Gtk.Application.do_startup(self)
 
-        # Add icons in alternative data paths (e.g. ./data/icons) 
-        # to the icon search path in case Mailnag is launched 
+        # Add icons in alternative data paths (e.g. ./data/icons)
+        # to the icon search path in case Mailnag is launched
         # from a local directory (without installing).
         icon_theme = Gtk.IconTheme.get_default()
         for path in get_icon_paths():
@@ -69,7 +69,7 @@ class App(Gtk.Application):
 
         if self.win.get_daemon_enabled():
             try:
-                # the launched daemon shuts down 
+                # the launched daemon shuts down
                 # an already running daemon
                 print("Launching Mailnagger daemon.")
                 try:
@@ -88,7 +88,7 @@ def main() -> int:
 
     set_procname("mailnagger-config")
     init_logging(enable_stdout = True, enable_syslog = False, log_level = LOG_LEVEL)
+
     app = App()
     app.run(None)
     return os.EX_OK
-

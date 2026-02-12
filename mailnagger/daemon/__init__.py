@@ -45,7 +45,7 @@ from Mailnag.daemon.mailnagdaemon import MailnagDaemon
 _LOGGER = logging.getLogger(__name__)
 
 PROGNAME = 'mailnagger'
-LOG_LEVEL = logging.DEBUG
+LOG_LEVEL = logging.WARNING
 
 
 def cleanup(daemon: Optional[MailnagDaemon]) -> None:

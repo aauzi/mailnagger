@@ -23,6 +23,7 @@ import sys
 import time
 import dbus
 import logging
+import logging.config
 import logging.handlers
 from collections.abc import Callable
 from typing import TypeVar
@@ -31,6 +32,7 @@ import gi
 gi.require_version('Goa', '1.0')
 from gi.repository import Goa
 
+from Mailnag.common.config import read_cfg
 from Mailnag.common.dist_cfg import DBUS_BUS_NAME, DBUS_OBJ_PATH
 
 LOG_FORMAT = '%(levelname)s (%(asctime)s): %(message)s'
@@ -47,19 +49,56 @@ def init_logging(
 		format = LOG_FORMAT,
 		datefmt = LOG_DATE_FORMAT,
 		level = log_level)
-	
+
 	logger = logging.getLogger('')
-	
+
 	if not enable_stdout:
 		stdout_handler = logger.handlers[0]
 		logger.removeHandler(stdout_handler)
-	
+
 	if enable_syslog:
 		syslog_handler = logging.handlers.SysLogHandler(address='/dev/log')
 		syslog_handler.setLevel(log_level)
 		syslog_handler.setFormatter(logging.Formatter(LOG_FORMAT, LOG_DATE_FORMAT))
-	
+
 		logger.addHandler(syslog_handler)
+
+	configure_logging()
+
+def configure_logging() -> None:
+	VALID_LEVELS = {"DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"}
+
+	config = {
+		"version": 1,
+		"disable_existing_loggers": False,
+		"incremental": True,
+		"root": {
+			"level": logging.getLevelName(logging.getLogger().getEffectiveLevel())
+		},
+		"loggers": {},
+	}
+
+	cfg = read_cfg()
+
+	if not 'logger_levels' in cfg:
+		return
+
+	raw_levels = dict(cfg.items('logger_levels'))
+	for name, level in raw_levels.items():
+		clean_level = str(level).upper().strip()
+
+		if clean_level not in VALID_LEVELS:
+			continue
+
+		if name == "root":
+			config["root"]["level"] = clean_level
+		else:
+			config["loggers"][name] = {
+				"level": clean_level,
+				"propagate": True
+			}
+
+	logging.config.dictConfig(config)
 
 
 def splitstr(strn: str, delimeter: str) -> list[str]:
@@ -87,21 +126,21 @@ def try_call(f: Callable[[], T], err_retval: T) -> T:
 
 def shutdown_existing_instance(wait_for_completion: bool = True) -> None:
 	bus = dbus.SessionBus()
-	
+
 	if bus.name_has_owner(DBUS_BUS_NAME):
 		sys.stdout.write('Shutting down existing Mailnagger process...')
 		sys.stdout.flush()
-		
+
 		try:
 			proxy = bus.get_object(DBUS_BUS_NAME, DBUS_OBJ_PATH)
 			shutdown = proxy.get_dbus_method('Shutdown', DBUS_BUS_NAME)
-			
+
 			shutdown()
-			
+
 			if wait_for_completion:
 				while bus.name_has_owner(DBUS_BUS_NAME):
 					time.sleep(2)
-			
+
 			print('OK')
 		except:
 			print('FAILED')
@@ -109,10 +148,10 @@ def shutdown_existing_instance(wait_for_completion: bool = True) -> None:
 
 def get_goa_account_id(name, user):
 	_LOGGER.debug("Get GOA account: name: %s, user: %s", name, user)
-	
+
 	client = Goa.Client.new_sync(None)
 	goa_accounts = client.get_accounts()
-	    
+
 	for obj in goa_accounts:
 		account = obj.get_account()
 		if account is None or account.props.mail_disabled:
@@ -122,8 +161,8 @@ def get_goa_account_id(name, user):
 			continue
 
 		_LOGGER.debug("	 account: name: %s, user: %s",
-                              mail.props.email_address,
-                              mail.props.imap_user_name)
+			      mail.props.email_address,
+			      mail.props.imap_user_name)
 		if (name == mail.props.email_address
 		    and user == mail.props.imap_user_name):
 			identity = account.get_property('id')
@@ -134,6 +173,7 @@ def get_goa_account_id(name, user):
 			return identity
 	return None
 
+
 def refresh_goa_token(account_id):
 	client = Goa.Client.new_sync(None)
 	obj = client.lookup_by_id(account_id)
@@ -143,9 +183,9 @@ def refresh_goa_token(account_id):
 	oauth2_based = obj.get_oauth2_based()
 	if oauth2_based is None:
 		return None
-	
+
 	return oauth2_based.call_get_access_token_sync(None)
-	
+
 
 def strlimit(txt: str) -> str:
 	txt = str(txt)

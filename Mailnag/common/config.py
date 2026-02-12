@@ -44,6 +44,7 @@ def cfg_exists() -> bool:
 
 def read_cfg() -> RawConfigParser:
 	cfg = RawConfigParser()
+	cfg.optionxform = str
 	cfg.read_dict(mailnag_defaults)
 
 	if os.path.exists(cfg_file):
