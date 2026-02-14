@@ -260,6 +260,7 @@ class LibNotifyPlugin(Plugin):
 		lv = None
 		try:
 			with open(cfg_2fa_providers_file, 'r', encoding='utf-8') as fin:
+				next(fin)
 				lv = list(csv.DictReader(fin, fieldnames=_2fa_providers_keys, delimiter='\t'))
 		except FileNotFoundError:
 			pass
@@ -267,20 +268,18 @@ class LibNotifyPlugin(Plugin):
 			providers = []
 			for v in lv:
 				values = []
-				if isinstance(v, dict):
-					for k in _2fa_providers_keys:
-						if k in v:
-							values.append(v[k])
-				elif isinstance(v, list):
-					values = copy.deepcopy(v)
+				assert isinstance(v, dict), f'Oops! "dict" lines expected in {os.path.basename(cfg_2fa_providers_file)}'
+				for k in _2fa_providers_keys:
+					if k in v:
+						values.append(v[k])
 
-				if isinstance(values[0], str):
-					if values[0].lower() in ('y', 'yes', 'true', 'on'):
-						values[0] = True
-					else:
-						values[0] = False
-				if len(values) == len(_2fa_providers_keys):
-					providers.append(values)
+				assert isinstance(values[0], str)
+				if values[0].lower() in ('y', 'yes', 'true', 'on'):
+					values[0] = True
+				else:
+					values[0] = False
+
+				providers.append(values)
 			return providers
 
 		return copy.deepcopy(default_2fa_providers)
