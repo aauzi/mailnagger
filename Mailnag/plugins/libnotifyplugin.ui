@@ -131,6 +131,7 @@
           <object class="GtkBox" id="treeview_box">
             <property name="visible">True</property>
             <property name="can-focus">False</property>
+            <property name="vexpand">True</property>
             <property name="orientation">vertical</property>
             <child>
               <object class="GtkScrolledWindow" id="scrolledwindow1">
@@ -148,13 +149,14 @@
                     <property name="headers-clickable">False</property>
                     <property name="enable-search">False</property>
                     <property name="search-column">1</property>
-                    <property name="activate-on-single-click">True</property>
                     <signal name="row-activated" handler="provider_row_activated" swapped="no"/>
                     <child internal-child="selection">
-                      <object class="GtkTreeSelection"/>
+                      <object class="GtkTreeSelection">
+                        <signal name="changed" handler="provider_sel_changed" swapped="no"/>
+                      </object>
                     </child>
                     <child>
-                      <object class="GtkTreeViewColumn">
+                      <object class="GtkTreeViewColumn" id="col_enabled">
                         <property name="title" translatable="yes">Enabled</property>
                         <child>
                           <object class="GtkCellRendererToggle">
@@ -167,7 +169,7 @@
                       </object>
                     </child>
                     <child>
-                      <object class="GtkTreeViewColumn">
+                      <object class="GtkTreeViewColumn" id="col_provider">
                         <property name="resizable">True</property>
                         <property name="sizing">autosize</property>
                         <property name="title" translatable="yes">Sender</property>
@@ -180,7 +182,7 @@
                       </object>
                     </child>
                     <child>
-                      <object class="GtkTreeViewColumn">
+                      <object class="GtkTreeViewColumn" id="col_subject">
                         <property name="resizable">True</property>
                         <property name="title" translatable="yes">Subject</property>
                         <child>
@@ -192,7 +194,7 @@
                       </object>
                     </child>
                     <child>
-                      <object class="GtkTreeViewColumn">
+                      <object class="GtkTreeViewColumn" id="col_text_re">
                         <property name="resizable">True</property>
                         <property name="sizing">autosize</property>
                         <property name="title" translatable="yes">Pattern</property>
@@ -276,40 +278,108 @@
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkLabel">
-                    <property name="visible">True</property>
-                    <property name="can-focus">True</property>
-                    <property name="halign">end</property>
-                    <property name="margin-start">6</property>
-                    <property name="margin-end">6</property>
-                    <property name="label" translatable="yes">2FA notifications</property>
-                    <property name="justify">right</property>
+                  <object class="GtkInfoBar" id="info">
+                    <property name="can-focus">False</property>
+                    <property name="no-show-all">True</property>
+                    <property name="orientation">vertical</property>
+                    <property name="show-close-button">True</property>
+                    <signal name="response" handler="info_response" swapped="no"/>
+                    <child internal-child="action_area">
+                      <object class="GtkButtonBox">
+                        <property name="can-focus">False</property>
+                        <property name="spacing">6</property>
+                        <property name="layout-style">end</property>
+                        <child>
+                          <placeholder/>
+                        </child>
+                      </object>
+                      <packing>
+                        <property name="expand">True</property>
+                        <property name="fill">True</property>
+                        <property name="position">0</property>
+                      </packing>
+                    </child>
+                    <child internal-child="content_area">
+                      <object class="GtkBox">
+                        <property name="can-focus">False</property>
+                        <property name="spacing">16</property>
+                        <child>
+                          <object class="GtkLabel" id="label_info">
+                            <property name="visible">True</property>
+                            <property name="can-focus">False</property>
+                            <property name="hexpand">True</property>
+                            <property name="label" translatable="yes">information</property>
+                            <property name="single-line-mode">True</property>
+                            <property name="max-width-chars">50</property>
+                          </object>
+                          <packing>
+                            <property name="expand">True</property>
+                            <property name="fill">True</property>
+                            <property name="position">0</property>
+                          </packing>
+                        </child>
+                      </object>
+                      <packing>
+                        <property name="expand">True</property>
+                        <property name="fill">True</property>
+                        <property name="position">0</property>
+                      </packing>
+                    </child>
                   </object>
                   <packing>
                     <property name="expand">True</property>
                     <property name="fill">True</property>
+                    <property name="padding">5</property>
                     <property name="position">2</property>
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkSwitch" id="switch_2FA_notifications">
+                  <object class="GtkBox">
                     <property name="visible">True</property>
-                    <property name="can-focus">True</property>
-                    <property name="tooltip-text" translatable="yes">Enable/disable libnotify 2FA processing</property>
-                    <property name="halign">end</property>
-                    <property name="valign">center</property>
-                    <property name="margin-start">3</property>
+                    <property name="can-focus">False</property>
+                    <child>
+                      <object class="GtkLabel" id="label_2fa_notification">
+                        <property name="visible">True</property>
+                        <property name="can-focus">True</property>
+                        <property name="margin-start">6</property>
+                        <property name="margin-end">6</property>
+                        <property name="label" translatable="yes">2FA notifications</property>
+                        <property name="justify">right</property>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">False</property>
+                        <property name="position">1</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkSwitch" id="switch_2FA_notifications">
+                        <property name="visible">True</property>
+                        <property name="can-focus">True</property>
+                        <property name="tooltip-text" translatable="yes">Enable/disable libnotify 2FA processing</property>
+                        <property name="halign">end</property>
+                        <property name="valign">center</property>
+                        <property name="margin-left">3</property>
+                        <property name="margin-start">3</property>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">False</property>
+                        <property name="position">2</property>
+                      </packing>
+                    </child>
                   </object>
                   <packing>
                     <property name="expand">False</property>
                     <property name="fill">False</property>
-                    <property name="position">3</property>
+                    <property name="pack-type">end</property>
+                    <property name="position">6</property>
                   </packing>
                 </child>
               </object>
               <packing>
                 <property name="expand">False</property>
-                <property name="fill">False</property>
+                <property name="fill">True</property>
                 <property name="pack-type">end</property>
                 <property name="position">1</property>
               </packing>
@@ -332,7 +402,7 @@
     </child>
   </object>
   <object class="GtkTextBuffer" id="pattern_text_buffer">
-    <property name="text" translatable="yes">Pattern</property>
+    <property name="text" translatable="yes">Pattern regexp with {code} for capture.</property>
   </object>
   <object class="GtkDialog" id="edit_2FA_provider_dialog">
     <property name="width-request">480</property>
@@ -392,11 +462,11 @@
           <packing>
             <property name="expand">False</property>
             <property name="fill">False</property>
-            <property name="position">1</property>
+            <property name="position">3</property>
           </packing>
         </child>
         <child>
-          <!-- n-columns=2 n-rows=3 -->
+          <!-- n-columns=2 n-rows=2 -->
           <object class="GtkGrid">
             <property name="visible">True</property>
             <property name="can-focus">False</property>
@@ -409,7 +479,7 @@
                 <property name="visible">True</property>
                 <property name="can-focus">False</property>
                 <property name="halign">end</property>
-                <property name="label" translatable="yes">Sender:</property>
+                <property name="label" translatable="yes">Sender</property>
               </object>
               <packing>
                 <property name="left-attach">0</property>
@@ -420,6 +490,9 @@
               <object class="GtkEntry" id="sender">
                 <property name="visible">True</property>
                 <property name="can-focus">True</property>
+                <property name="tooltip-text" translatable="yes">Display name of a mail sender, 
+if display name is not available, 
+address spec can be used.</property>
                 <property name="margin-start">6</property>
                 <property name="margin-end">6</property>
                 <property name="hexpand">True</property>
@@ -435,7 +508,7 @@
                 <property name="visible">True</property>
                 <property name="can-focus">False</property>
                 <property name="halign">end</property>
-                <property name="label" translatable="yes">Subject:</property>
+                <property name="label" translatable="yes">Subject</property>
               </object>
               <packing>
                 <property name="left-attach">0</property>
@@ -446,30 +519,21 @@
               <object class="GtkEntry" id="subject">
                 <property name="visible">True</property>
                 <property name="can-focus">True</property>
+                <property name="tooltip-text" translatable="yes" comments="The {code} string is a hardcoded string, it should not be translated.">This field is not a regular expression, 
+however it can contain a code which 
+is materialised within braces, like 
+this: {code}.
+
+Ex: Your security code: {code}</property>
                 <property name="margin-start">6</property>
                 <property name="margin-end">6</property>
                 <property name="hexpand">True</property>
-                <property name="placeholder-text" translatable="yes">Subject</property>
+                <property name="placeholder-text" translatable="yes">Subject  (not a regexp but {code} for capture possible)</property>
               </object>
               <packing>
                 <property name="left-attach">1</property>
                 <property name="top-attach">1</property>
               </packing>
-            </child>
-            <child>
-              <object class="GtkLabel">
-                <property name="visible">True</property>
-                <property name="can-focus">False</property>
-                <property name="halign">end</property>
-                <property name="label" translatable="yes">Pattern:</property>
-              </object>
-              <packing>
-                <property name="left-attach">0</property>
-                <property name="top-attach">2</property>
-              </packing>
-            </child>
-            <child>
-              <placeholder/>
             </child>
           </object>
           <packing>
@@ -479,13 +543,36 @@
           </packing>
         </child>
         <child>
-          <object class="GtkTextView" id="pattern">
-            <property name="height-request">12</property>
+          <object class="GtkFrame">
+            <property name="height-request">50</property>
             <property name="visible">True</property>
-            <property name="can-focus">True</property>
+            <property name="can-focus">False</property>
             <property name="margin-start">48</property>
-            <property name="margin-top">12</property>
-            <property name="buffer">pattern_text_buffer</property>
+            <property name="margin-end">7</property>
+            <property name="margin-top">6</property>
+            <property name="margin-bottom">6</property>
+            <property name="label-xalign">0.05000000074505806</property>
+            <property name="shadow-type">out</property>
+            <child>
+              <object class="GtkTextView" id="pattern">
+                <property name="height-request">120</property>
+                <property name="visible">True</property>
+                <property name="can-focus">True</property>
+                <property name="tooltip-text" translatable="yes" comments="The {code} string is a hardcoded string, it should not be translated.">This field can be a regular expression 
+where the code is materialised within 
+braces, like this: {code}.
+
+Ex: Your security code is:\s?{code}</property>
+                <property name="buffer">pattern_text_buffer</property>
+              </object>
+            </child>
+            <child type="label">
+              <object class="GtkLabel">
+                <property name="visible">True</property>
+                <property name="can-focus">False</property>
+                <property name="label" translatable="yes">Text</property>
+              </object>
+            </child>
           </object>
           <packing>
             <property name="expand">True</property>

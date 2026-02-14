@@ -36,7 +36,7 @@ import csv
 import copy
 from collections.abc import Callable
 from typing import Any, Optional
-from gi.repository import Notify, Gio, Gtk
+from gi.repository import Notify, Gio, Gtk, Gdk, GLib
 from Mailnag.common.dist_cfg import PACKAGE_NAME
 from Mailnag.common.plugins import Plugin, HookTypes
 from Mailnag.common.i18n import _
@@ -59,7 +59,7 @@ _LOGGER = logging.getLogger(__name__)
 DESKTOP_ENV_VARS_FOR_SUPPORT_TEST = ('XDG_CURRENT_DESKTOP', 'GDMSESSION')
 SUPPORTED_DESKTOP_ENVIRONMENTS = ("gnome", "cinnamon")
 
-RE_CODE = r'\b(?P<code>\d+)\b'
+RE_CODE = r'\b(?P<code>\d{4,8})\b'
 
 cfg_2fa_providers_file = os.path.join(cfg_folder, '2fa_providers.tsv')
 
@@ -69,7 +69,7 @@ plugin_defaults = {
 	'2fa_notifications' : True,
 }
 
-_2fa_providers_keys = ('enabled', 'provider', 'subject_re', 'text_re')
+_2fa_providers_keys = ('enabled', 'provider', 'subject', 'text_re')
 default_2fa_providers = [
 	(True, 'Garmin', 'Your Security Passcode',    r'Use this one-time code for your account\n{code}\n'),
 	(True, 'Garmin', _('Your Security Passcode'), r'voici votre code de sécurité.\n{code}\n'),
@@ -197,7 +197,9 @@ class LibNotifyPlugin(Plugin):
 			'btn_edit_provider_clicked':	self._on_btn_edit_provider_clicked,
 			'provider_toggled':		self._on_provider_toggled,
 			'provider_row_activated':	self._on_provider_row_activated,
+			'provider_sel_changed':		self._on_provider_sel_changed,
 			'expander_2fa_providers_expanded': self._on_expander_2fa_providers_expanded,
+			'info_response':		self._on_info_response,
 		})
 
 		self._builder = builder
@@ -206,6 +208,8 @@ class LibNotifyPlugin(Plugin):
 		self._switch_2FA_notifications = builder.get_object('switch_2FA_notifications')
 		self._liststore_2FA_providers = builder.get_object('liststore_2FA_providers')
 		self._treeview_2FA_providers = builder.get_object('treeview_2FA_providers')
+		self._infobar_info = builder.get_object('info')
+		self._label_info = builder.get_object('label_info')
 
 		self._scrolled_window = builder.get_object('scrolledwindow1')
 		self._scrolled_window.set_min_content_height(120)
@@ -222,34 +226,43 @@ class LibNotifyPlugin(Plugin):
 		assert isinstance(providers,list), f'Oops! config still have invalid providers (type={type(providers).__name__})'
 		return providers
 
-	@staticmethod
-	def _check_2fa_provider_pattern(sender: str, subject: str, pattern: str) -> bool:
-		ret = True
-		if not '{code}' in pattern:
-			ret = False
-			_LOGGER.error('missing "code" group pattern: {code}...\n'+
+	def _check_2fa_provider_pattern(self, sender: str, subject: str, pattern: str) -> bool:
+		if not '{code}' in subject and not '{code}' in pattern:
+
+			_LOGGER.debug('Missing "code" group pattern: {code}...\n'
 				      'sender: %s, subject: %s\npattern:\n%s',
 				      sender, subject,
 				      pattern)
-		if ret:
-			try:
-				_cre = re.compile(pattern.replace('{code}', RE_CODE))
-			except re.PatternError as e:
-				ret = False
-				posi = ''
-				if 'pos' in e.__dict__ and e.pos is not None:
-					posi = '^'
-					i = e.pos
-					while i > 0:
-						i -= 1
-						posi = ' ' + posi
-					posi = '\n' + posi
-				_LOGGER.error('pattern is incorrect regexp:\n'+
-					      'sender: %s, subject: %s\npattern: %s\n%s%s',
-					      sender, subject,	e.msg,
-					      pattern, posi)
+			self._alert_message(_('Missing "code" group pattern: {code}'),
+					    msg_type=Gtk.MessageType.ERROR, duration_s=5)
+			return False
 
-		return ret
+		def check_regexp(name: str, msg_name: str, regexp_p: str) -> bool:
+			if '{code}' not in regexp_p:
+				return True
+			try:
+				compiled_re = regexp_p.replace('{code}', RE_CODE).strip()
+				_cre = re.compile(compiled_re)
+				return True
+			except (re.error, AttributeError) as e:
+				posi = ''
+				pos = getattr(e, 'pos', None)
+				if pos is not None:
+					posi = "\n" + (" " * pos) + "^"
+				_LOGGER.exception('%s is incorrect regexp: %s\nregex: %s\n%s%s',
+						  name, str(e), regexp_p,
+						  compiled_re, posi)
+				self._alert_message(_('%s is incorrect regexp'), msg_name,
+						    msg_type=Gtk.MessageType.ERROR, duration_s=5)
+			return False
+
+		if not check_regexp('subject', _('Subject'), re.escape(subject)):
+			return False
+
+		if not check_regexp('pattern', _('Pattern'), pattern):
+			return False
+
+		return True
 
 	def get_config(self):
 		config = super().get_config()
@@ -257,27 +270,68 @@ class LibNotifyPlugin(Plugin):
 		return config
 
 	def _load_2fa_providers_from_config(self):
+		def check_regexp(name: str, regexp_p: str) -> bool:
+			if '{code}' not in regexp_p:
+				return True
+			try:
+				compiled_re = regexp_p.replace('{code}', RE_CODE).strip()
+				_cre = re.compile(compiled_re)
+				return True
+			except (re.error, AttributeError) as e:
+				posi = ''
+				pos = getattr(e, 'pos', None)
+				if pos is not None:
+					posi = "\n" + (" " * pos) + "^"
+				_LOGGER.exception('%s is incorrect regexp: %s\nregex: %s\n%s%s',
+						  name, str(e), regexp_p,
+						  compiled_re, posi)
+			return False
+
+
 		lv = None
 		try:
 			with open(cfg_2fa_providers_file, 'r', encoding='utf-8') as fin:
 				next(fin)
 				lv = list(csv.DictReader(fin, fieldnames=_2fa_providers_keys, delimiter='\t'))
-		except FileNotFoundError:
+		except (FileNotFoundError, StopIteration):
 			pass
+		except Exception as e:
+			_LOGGER.exception('Failed to read 2FA providers file: %s\n%s',
+					  os.path.basename(cfg_2fa_providers_file),
+					  str(e))
+
 		if lv is not None:
 			providers = []
-			for v in lv:
-				values = []
-				assert isinstance(v, dict), f'Oops! "dict" lines expected in {os.path.basename(cfg_2fa_providers_file)}'
-				for k in _2fa_providers_keys:
-					if k in v:
-						values.append(v[k])
+			for l, v in enumerate(lv, start=2):
+				if not isinstance(v, dict):
+					_LOGGER.debug('Line %d invalid in: %s',
+						      os.path.basename(cfg_2fa_providers_file))
+					continue
 
-				assert isinstance(values[0], str)
-				if values[0].lower() in ('y', 'yes', 'true', 'on'):
-					values[0] = True
-				else:
-					values[0] = False
+				values = []
+				regexps_invalid = []
+				is_enabled = str(v.get('enabled', '')).lower() in ('y', 'yes', 'true', 'on')
+
+				for k in _2fa_providers_keys:
+					if k == 'enabled':
+						continue
+
+					val = v.get(k, "")
+					if val:
+						if k == 'subject':
+							if not check_regexp(k, re.escape(v[k])):
+								regexps_invalid.append(f'line: {l}, field: {k}, value: {v[k]}')
+						elif k =='text_re':
+							if not check_regexp(k, v[k]):
+								regexps_invalid.append(f'line: {l}, field: {k}, value: {v[k]}')
+					values.append(val)
+
+				if regexps_invalid:
+					_LOGGER.debug('Regexp invalid in: %s\n	%s',
+						      os.path.basename(cfg_2fa_providers_file),
+						      '\n  '.join(regexps_invalid))
+
+				values.insert(0, is_enabled and not bool(regexps_invalid))
 
 				providers.append(values)
 			return providers
@@ -450,31 +504,27 @@ class LibNotifyPlugin(Plugin):
 		sender = self._get_sender(mail)
 		subject = mail.subject
 		body = None
+		code = None
 
-		for (_enabled, _sender, _subject, _pattern) in providers:
-			if not _enabled:
+		for (_enabled, _sender, _subject, _text_re) in providers:
+			if not _enabled or sender != _sender:
 				continue
 
-			if sender != _sender:
-				continue
-
-			if _subject != subject and '{code}' in _subject:
-				_pattern = re.escape(_subject).replace(r'\{code\}', RE_CODE)
+			if '{code}' in _subject:
+				_pattern = re.escape(_subject).replace(r'\{code\}', RE_CODE).strip()
 				m = re.match(_pattern, subject)
 
-				if m is None:
-					continue
-
-				code = m.group('code')
-				if code:
+				if m:
+					code = m.group('code')
 					_LOGGER.debug("2FA matched code %s: sender=%s, subject=%s",
 						      code,
 						      sender, subject)
 					break
-
-
-			if subject != _subject:
-				continue
+				else:
+					continue
+			else:
+				if subject != _subject:
+					continue
 
 			_LOGGER.debug("2FA pre-matched : sender=%s, subject=%s",
 				      sender, subject)
@@ -489,16 +539,14 @@ class LibNotifyPlugin(Plugin):
 						sender, subject)
 				return False
 
-			m = re.search(_pattern.replace('{code}', RE_CODE), body)
-			if m is None:
-				continue
-
-			code = m.group('code')
-			_LOGGER.debug("2FA matched code %s: sender=%s, subject=%s, body:\n%s",
-				      code,
-				      sender, subject,
-				      dbgindent(body))
-			break
+			m = re.search(_text_re.replace('{code}', RE_CODE).strip(), body)
+			if m:
+				code = m.group('code')
+				_LOGGER.debug("2FA matched code %s: sender=%s, subject=%s, body:\n%s",
+					      code,
+					      sender, subject,
+					      dbgindent(body))
+				break
 		else:
 			_LOGGER.debug("2FA not matched : sender=%s, subject=%s, body:\n%s",
 				      sender, subject,
@@ -506,6 +554,8 @@ class LibNotifyPlugin(Plugin):
 				      '	 '+'\n	'.join(str(body).splitlines()))
 
 			return False
+
+		assert code is not None
 
 		n = self._get_notification(sender, f'{subject}: {code}', "mail-unread")
 		n.set_timeout(Notify.EXPIRES_NEVER)
@@ -714,10 +764,12 @@ class LibNotifyPlugin(Plugin):
 		_enable = b.get_object('enable').get_active()
 		_sender = b.get_object('sender').get_text()
 		_subject = b.get_object('subject').get_text()
-		_pattern = b.get_object('pattern_text_buffer').get_text()
+		start = b.get_object('pattern_text_buffer').get_start_iter()
+		end = b.get_object('pattern_text_buffer').get_end_iter()
+		_pattern = b.get_object('pattern_text_buffer').get_text(start, end, False)
 
-		if not self._check_2fa_provider_pattern(_sender, _subject, _pattern) and _enabled:
-			_enabled = False
+		if not self._check_2fa_provider_pattern(_sender, _subject, _pattern) and _enable:
+			_enable = False
 
 		row = [_enable, _sender, _subject, _pattern]
 
@@ -726,11 +778,6 @@ class LibNotifyPlugin(Plugin):
 		path = model.get_path(iter)
 		self._treeview_2FA_providers.set_cursor(path, None, False)
 		self._treeview_2FA_providers.grab_focus()
-
-
-	def _get_selected_provider(self) -> None:
-		treeselection = self._treeview_2FA_providers.get_selection()
-		return treeselection.get_selected()
 
 
 	def _show_confirmation_dialog(self, text: str) -> None:
@@ -776,10 +823,7 @@ class LibNotifyPlugin(Plugin):
 		model.remove(iter)
 
 
-	def _edit_provider(self) -> None:
-		treeselection = self._treeview_2FA_providers.get_selection()
-		model, iter = treeselection.get_selected()
-
+	def _edit_provider(self, model, iter) -> None:
 		if iter is None:
 			return
 
@@ -817,7 +861,10 @@ class LibNotifyPlugin(Plugin):
 
 	def _on_btn_edit_provider_clicked(self, widget: Gtk.ToolButton) -> None:
 		_LOGGER.debug('on_btn_edit_provider_clicked')
-		self._edit_provider()
+		treeselection = self._treeview_2FA_providers.get_selection()
+		model, iter = treeselection.get_selected()
+
+		self._edit_provider(model, iter)
 
 
 	def _on_provider_toggled(self, cell: Gtk.CellRendererToggle, path: Gtk.TreePath) -> None:
@@ -838,8 +885,15 @@ class LibNotifyPlugin(Plugin):
 
 	def _on_provider_row_activated(self, view: Gtk.TreeView, path: Gtk.TreePath, column: Gtk.TreeViewColumn) -> None:
 		_LOGGER.debug('on_provider_row_activated')
-		for  id in ('btn_remove_2FA_provider', 'btn_edit_2FA_provider'):
-			self._builder.get_object(id).set_sensitive(True)
+
+		event = Gtk.get_current_event()
+
+		_LOGGER.debug('event.type = %s', event.type.value_name)
+
+		if column.get_name() != 'col_enabled':
+			model = view.get_model()
+			iter = model.get_iter(path)
+			self._edit_provider(model, iter)
 
 
 	def _on_expander_2fa_providers_expanded(self, expander, pspec) -> None:
@@ -847,6 +901,66 @@ class LibNotifyPlugin(Plugin):
 
 		w = wnd.get_size().width
 		wnd.resize(w, 1)
+
+
+	def _on_provider_sel_changed(self, selection: Gtk.TreeSelection) -> None:
+		model, iter = selection.get_selected()
+		sensitive = (iter is not None)
+		for  id in ('btn_remove_2FA_provider', 'btn_edit_2FA_provider'):
+			self._builder.get_object(id).set_sensitive(sensitive)
+
+	@staticmethod
+	def _stop_infobar_timeout(infobar: Gtk.InfoBar) -> None:
+		timeout_id = getattr(infobar, "timeout_id", None)
+		if timeout_id is not None:
+			GLib.source_remove(timeout_id)
+			infobar.timeout_id = None
+
+	@staticmethod
+	def _start_infobar_timeout(infobar: Gtk.InfoBar, duration_s: int) -> None:
+		LibNotifyPlugin._stop_infobar_timeout(infobar)
+
+		def timeout_reached():
+			infobar.hide()
+			infobar.timeout_id = None
+			return False
+
+		infobar.timeout_id = GLib.timeout_add(duration_s*1000, timeout_reached)
+
+
+	def _alert_message(self, msg_format:str, *args, msg_type: Gtk.MessageType = Gtk.MessageType.INFO, duration_s:int = None) -> None:
+		self._stop_infobar_timeout(self._infobar_info)
+
+		# 1. Formatage sécurisé du message
+		try:
+			msg = msg_format % args if args else msg_format
+		except TypeError as e:
+			msg = msg_format
+			log_msg = f"Erreur de formatage message: {msg_format} (args: {args})"
+			_LOGGER.exception("Format Error: %s\n%s", str(e), log_msg)
+
+		# 2. Correspondance Logging et Affichage
+		# On définit le niveau de log en fonction du type GTK passé
+		if msg_type == Gtk.MessageType.ERROR:
+			_LOGGER.error(msg)
+		elif msg_type == Gtk.MessageType.WARNING:
+			_LOGGER.warning(msg)
+		elif msg_type == Gtk.MessageType.QUESTION:
+			_LOGGER.info("QUESTION: %s", msg)
+		else: # INFO ou OTHER
+			_LOGGER.info(msg)
+
+		self._label_info.set_text(msg)
+		self._infobar_info.set_message_type(msg_type)
+		self._infobar_info.show()
+
+		if duration_s is not None:
+			self._start_infobar_timeout(self._infobar_info, duration_s)
+
+	def _on_info_response(self, infobar: Gtk.InfoBar, response_id: int) -> None:
+		if response_id in (Gtk.ResponseType.CLOSE, Gtk.ResponseType.OK):
+			self._stop_infobar_timeout(infobar)
+			infobar.hide()
 
 
 def ellipsize(str: str, max_len: int) -> str:
