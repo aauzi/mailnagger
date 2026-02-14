@@ -30,7 +30,7 @@ import os
 import dbus
 import threading
 import re
-from subprocess import Popen, PIPE
+from subprocess import Popen, PIPE, TimeoutExpired
 import logging
 import csv
 import copy
@@ -85,6 +85,11 @@ class LibNotifyPlugin(Plugin):
 		self._notification_server_ready = False
 		self._is_supported_env = False
 		self._mails_added_hook: Optional[Callable[[list[Mail], list[Mail]], None]] = None
+		self._copy_commands = [ # wl-copy (Wayland), xsel (X11 alternatif), xclip (X11 standard)
+			['wl-copy'],
+			['xclip', '-selection', 'c'],
+			['xsel', '--clipboard', '--input']
+		]
 
 
 	def enable(self) -> None:
@@ -184,9 +189,9 @@ class LibNotifyPlugin(Plugin):
 			radio_mapping.append((mode, radio_btn))
 
 		label = builder.get_object('notification_modes')
-		label.set_markup('<b>%s</b>' % _('Notification mode:'))
+		label.set_markup(f'<b>{_('Notification mode:')}</b>')
 		label = builder.get_object('2fa_providers')
-		label.set_markup('<b>%s</b>' % _('2FA providers'))
+		label.set_markup(f'<b>{_('2FA providers')}</b>')
 
 		builder.connect_signals({
 			'close':			self._on_close,
@@ -430,10 +435,9 @@ class LibNotifyPlugin(Plugin):
 				n += 1
 			i += 1
 
+		senders = ', '.join(lst)
 		if self._is_supported_env:
-			senders = "<i>%s</i>" % ", ".join(lst)
-		else:
-			senders = ", ".join(lst)
+			senders = f'<i>{senders}</i>'
 
 		if mail_count > 1:
 			summary = _("{0} new mails").format(str(mail_count))
@@ -460,16 +464,18 @@ class LibNotifyPlugin(Plugin):
 		ubound = len(mails) if len(mails) <= self._max_mails else self._max_mails
 
 		for i in range(ubound):
+			m = mails[i]
+			sender = self._get_sender(m)
+			subject = m.subject
 			if self._is_supported_env:
-				body += "%s:\n<i>%s</i>\n\n" % (self._get_sender(mails[i]), mails[i].subject)
+				body += f'{sender}:\n<i>{subject}</i>\n\n'
 			else:
-				body += "%s  -	%s\n" % (ellipsize(self._get_sender(mails[i]), 20), ellipsize(mails[i].subject, 20))
+				body += f'{ellipsize(sender, 20)}  -	{ellipsize(subject, 20)}\n'
 
 		if len(mails) > self._max_mails:
+			fragment = _("(and {0} more)").format(str(len(mails) - self._max_mails))
 			if self._is_supported_env:
-				body += "<i>%s</i>" % _("(and {0} more)").format(str(len(mails) - self._max_mails))
-			else:
-				body += _("(and {0} more)").format(str(len(mails) - self._max_mails))
+				body += f'<i>{fragment}</i>'
 
 		if len(mails) > 1: # multiple new emails
 			summary = _("{0} new mails").format(str(len(mails)))
@@ -657,6 +663,32 @@ class LibNotifyPlugin(Plugin):
 				return False
 		return True
 
+	def _copy_to_clipboard(self, text: str) -> None:
+		"""Copie le texte dans le presse-papier en supportant Wayland et X11."""
+		# On encode le texte une seule fois
+		encoded_text = text.encode('utf-8')
+
+		for i, cmd in enumerate(list(self._copy_commands)):
+			try:
+				# On tente d'exécuter la commande
+				pipe = Popen(cmd, stdin=PIPE, close_fds=True)
+				pipe.communicate(input=encoded_text, timeout=2)
+
+				if pipe.returncode == 0:
+					_LOGGER.debug("Code copy succeeded with %s", cmd[0])
+					successful_cmd = self._copy_commands.pop(i)
+					self._copy_commands.insert(0, successful_cmd)
+					break
+			except TimeoutExpired:
+				_LOGGER.warning("Timeout expired with %s, .", cmd[0])
+				if pipe:
+					pipe.kill() # Important : kill the blocking process
+					pipe.wait()
+			except Exception as e:
+				_LOGGER.error("Copy failed with %s: %s", cmd[0], str(e))
+
+		else:
+			_LOGGER.error("Copy to clipboard failed (install wl-clipboard or xclip).")
 
 	def _notification_action_handler(
 		self,
@@ -687,22 +719,15 @@ class LibNotifyPlugin(Plugin):
 				controller = self.get_mailnag_controller()
 				try:
 					code = user_data[2]
-					try:
-						pipe = Popen(['xclip', '-selection', 'c'],
-							     stdin=PIPE,
-							     close_fds=True)
-						pipe.communicate(input=code.encode('utf-8'))
-						_LOGGER.debug('xclip set text:%s', code)
-					except:
-						_LOGGER.exception('xclip set text failed.')
-
+					self._copy_to_clipboard(code)
 					controller.mark_mail_as_read(user_data[0].id)
 				except InvalidOperationException:
 					pass
 
 				# clicking the action has closed the notification
 				# so remove its reference.
-				del self._notifications[user_data[1]]
+				if user_data[1] in self._notifications:
+					del self._notifications[user_data[1]]
 
 	@staticmethod
 	def _get_sender(mail: Mail) -> str:
