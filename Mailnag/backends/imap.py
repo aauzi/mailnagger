@@ -115,7 +115,7 @@ class IMAPMailboxBackend(MailboxBackend):
 				continue
 
 			if status != 'OK' or None in [d for d in data]:
-				_LOGGER.debug('Folder %s in status %s | Data: %s', (folder, status, data))
+				_LOGGER.debug('Folder %s in status %s | Data: %s', folder, status, data)
 				continue # Bugfix LP-735071
 			
 			for num in data[0].split():
@@ -128,8 +128,7 @@ class IMAPMailboxBackend(MailboxBackend):
 						if b'BODY[HEADER]' in response_part[0]:
 							header = email.message_from_bytes(response_part[1])
 				if header:
-					_LOGGER.debug("Msg header:\n%s",
-						      dbgindent(header))
+					_LOGGER.debug("Msg header:\n%s", dbgindent(header))
 					yield (folder, header, num.decode("utf-8"), { 'folder' : folder })
 
 	def fetch_text(self, mail: Mail) -> str | None:
@@ -210,7 +209,8 @@ class IMAPMailboxBackend(MailboxBackend):
 							last_folder = folder
 						status, data = conn.uid("STORE", m.flags['uid'], "+FLAGS", r"(\Seen)")
 					except:
-						_LOGGER.warning("Failed to set mail with uid %s to seen on server (account: '%s').", m.flags['uid'], self.name)
+						_LOGGER.warning("Failed to set mail with uid %s to seen on server (account: '%s').",
+                                                                m.flags['uid'], self.name)
 
 		finally:
 			self._disconnect(conn)
@@ -307,7 +307,7 @@ class IMAPMailboxBackend(MailboxBackend):
 				if 'STARTTLS' in conn.capabilities:
 					conn.starttls()
 				else:
-					_LOGGER.warning("Using unencrypted connection for account '%s'" % self.name)
+					_LOGGER.warning("Using unencrypted connection for account '%s'", self.name)
 
 			if self.oauth2string != '':
 				self._refresh_token()

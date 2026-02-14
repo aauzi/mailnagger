@@ -208,7 +208,7 @@ class MailCollector:
 				if not acc.is_open():
 					acc.open()
 			except Exception as ex:
-				_LOGGER.error("Failed to open mailbox for account '%s' (%s)." % (acc.name, ex))
+				_LOGGER.error("Failed to open mailbox for account '%s' (%s).", acc.name, ex)
 				continue
 
 			try:
@@ -237,7 +237,7 @@ class MailCollector:
 				if acc.supports_notifications():
 					raise
 				else:
-					_LOGGER.error("An error occured while processing mails of account '%s' (%s)." % (acc.name, ex))
+					_LOGGER.error("An error occured while processing mails of account '%s' (%s).", acc.name, ex)
 			finally:
 				# leave account with notifications open, so that it can
 				# send notifications about new mails
@@ -313,7 +313,7 @@ class MailCollector:
 		elif key.lower() in msg_dict:
 			value = msg_dict[key.lower()]
 		else:
-			_LOGGER.debug("Couldn't get %s from message." % key)
+			_LOGGER.debug("Couldn't get %s from message.", key)
 			raise KeyError
 
 		return value

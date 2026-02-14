@@ -135,7 +135,7 @@ class _Watchdog(threading.Thread):
 						# Kill process p and quit the thread 
 						# waiting for p to terminate (p.wait()).
 						p.kill()
-						_LOGGER.info('Watchdog killed process %s' % p.pid)
+						_LOGGER.info('Watchdog killed process %d', p.pid)
 					except: _LOGGER.debug('p.kill() failed')
 
 

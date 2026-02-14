@@ -146,7 +146,7 @@ class Account:
 			if not self.is_open():
 				self.open()
 		except Exception as ex:
-			_LOGGER.error("Failed to open mailbox for account '%s' (%s)." % (self.name, ex))
+			_LOGGER.error("Failed to open mailbox for account '%s' (%s).", self.name, ex)
 			return ret
 
 		try:
@@ -162,7 +162,7 @@ class Account:
 			if self.supports_notifications():
 				raise
 			else:
-				_LOGGER.error("An error occured while processing mails of account '%s' (%s)." % (self.name, ex))
+				_LOGGER.error("An error occured while processing mails of account '%s' (%s).", self.name, ex)
 		finally:
 			# leave account with notifications open, so that it can
 			# send notifications about new mails
@@ -376,7 +376,7 @@ class AccountManager:
 		i = 1
 		for acc in self._accounts:
 			if acc.oauth2string != '':
-				_LOGGER.warning("Saving of OAuth2 based accounts is not supported. Account '%s' skipped." % acc.name)
+				_LOGGER.warning("Saving of OAuth2 based accounts is not supported. Account '%s' skipped.", acc.name)
 				continue
 
 			section_name = "account" + str(i)

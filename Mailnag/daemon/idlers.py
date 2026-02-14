@@ -75,9 +75,9 @@ class Idler:
 			try:
 				self._account.open()
 			except Exception as ex:
-				_LOGGER.error("Failed to open mailbox for account '%s' (%s)." % (self._account.name, ex))
-				_LOGGER.info("Trying to reconnect Idler thread for account '%s' in %s minutes" % 
-					(self._account.name, str(self.RECONNECT_RETRY_INTERVAL)))
+				_LOGGER.error("Failed to open mailbox for account '%s' (%s).", self._account.name, ex)
+				_LOGGER.info("Trying to reconnect Idler thread for account '%s' in %d minutes", 
+					     self._account.name, self.RECONNECT_RETRY_INTERVAL)
 				self._wait(60 * self.RECONNECT_RETRY_INTERVAL) # don't hammer the server
 
 		while not self._disposing:
@@ -127,7 +127,8 @@ class Idler:
 		# flag the need for a connection reset in case of an error (e.g. conn terminated)
 		if error is not None:
 			error_type, error_val = error
-			_LOGGER.error("Idle callback for account '%s' returned an error (%s - %s)." % (self._account.name, error_type, str(error_val)))
+			_LOGGER.error("Idle callback for account '%s' returned an error (%s - %s).",
+                                      self._account.name, error_type, str(error_val))
 			self._needreset = True
 		
 		# trigger waiting _idle thread
@@ -136,7 +137,7 @@ class Idler:
 			
 	def _reset_conn(self) -> None:
 		# Try to reset the connection to recover from a possible connection error (e.g. after system suspend)
-		_LOGGER.info("Resetting connection for account '%s'" % self._account.name)
+		_LOGGER.info("Resetting connection for account '%s'", self._account.name)
 		try: self._account.close()
 		except: pass
 		self._reconnect()
@@ -144,17 +145,17 @@ class Idler:
 	
 	def _reconnect(self) -> None:
 		# connection has been reset by provider -> try to reconnect
-		_LOGGER.info("Idler thread for account '%s' has been disconnected" % self._account.name)
+		_LOGGER.info("Idler thread for account '%s' has been disconnected", self._account.name)
 
 		while (not self._account.is_open()) and (not self._disposing):
-			_LOGGER.info("Trying to reconnect Idler thread for account '%s'." % self._account.name)
+			_LOGGER.info("Trying to reconnect Idler thread for account '%s'.", self._account.name)
 			try:
 				self._account.open()
-				_LOGGER.info("Successfully reconnected Idler thread for account '%s'." % self._account.name)
+				_LOGGER.info("Successfully reconnected Idler thread for account '%s'.", self._account.name)
 			except Exception as ex:
-				_LOGGER.error("Failed to reconnect Idler thread for account '%s' (%s)." % (self._account.name, ex))
-				_LOGGER.info("Trying to reconnect Idler thread for account '%s' in %s minutes" % 
-					(self._account.name, str(self.RECONNECT_RETRY_INTERVAL)))
+				_LOGGER.error("Failed to reconnect Idler thread for account '%s' (%s).", self._account.name, ex)
+				_LOGGER.info("Trying to reconnect Idler thread for account '%s' in %d minutes",
+					     self._account.name, self.RECONNECT_RETRY_INTERVAL)
 				self._wait(60 * self.RECONNECT_RETRY_INTERVAL) # don't hammer the server
 	
 					
@@ -188,7 +189,7 @@ class IdlerRunner:
 					idler.start()
 					self._idlerlist.append(idler)
 				except Exception as ex:
-					_LOGGER.error("Error: Failed to create an idler thread for account '%s' (%s)" % (acc.name, ex))
+					_LOGGER.error("Error: Failed to create an idler thread for account '%s' (%s)", acc.name, ex)
 					
 	
 	def dispose(self) -> None:

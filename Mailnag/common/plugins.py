@@ -269,7 +269,7 @@ class Plugin:
 					p.init(modname, cfg, mailnag_controller)
 					plugins.append(p)
 			except:
-				_LOGGER.exception("Failed to instantiate plugin '%s'" % modname)
+				_LOGGER.exception("Failed to instantiate plugin '%s'", modname)
 
 		return plugins
 
@@ -320,6 +320,6 @@ class Plugin:
 						if issubclass(attr, Plugin) and attr != Plugin:
 							plugin_types.append((modname, attr))
 				except:
-					_LOGGER.exception("Error while opening plugin file '%s'" % f)
+					_LOGGER.exception("Error while opening plugin file '%s'", f)
 
 		return plugin_types

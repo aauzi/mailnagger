@@ -57,7 +57,7 @@ class MailChecker:
 		# make sure multiple threads (idler and polling thread) 
 		# don't check for mails simultaneously.
 		with self._mailcheck_lock:
-			_LOGGER.info('Checking %s email account(s).' % len(accounts))
+			_LOGGER.info('Checking %d email account(s).', len(accounts))
 			if _LOGGER.getEffectiveLevel() == logging.DEBUG and len(accounts):
 				_LOGGER.debug("Accounts:\n  - %s", '\n  - '.join([a.name for a in accounts]))
 			

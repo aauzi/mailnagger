@@ -80,7 +80,7 @@ class POP3MailboxBackend(MailboxBackend):
 				try:
 					conn.stls()
 				except:
-					_LOGGER.warning("Using unencrypted connection for account '%s'" % self.name)
+					_LOGGER.warning("Using unencrypted connection for account '%s'", self.name)
 
 			conn.getwelcome()
 			conn.user(self.user)

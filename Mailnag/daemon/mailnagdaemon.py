@@ -267,9 +267,9 @@ class MailnagDaemon(MailnagController):
 		for p in self._plugins:
 			try:
 				p.enable()
-				_LOGGER.info("Successfully enabled plugin '%s'." % p.get_modname())
+				_LOGGER.info("Successfully enabled plugin '%s'.", p.get_modname())
 			except:
-				_LOGGER.error("Failed to enable plugin '%s'." % p.get_modname())
+				_LOGGER.error("Failed to enable plugin '%s'.", p.get_modname())
 	
 
 	def _unload_plugins(self) -> None:
@@ -282,7 +282,7 @@ class MailnagDaemon(MailnagController):
 					p.disable()
 				except:
 					err = True
-					_LOGGER.error("Failed to disable plugin '%s'." % p.get_modname())
+					_LOGGER.error("Failed to disable plugin '%s'.", p.get_modname())
 		
 			if not err:
 				_LOGGER.info('Plugins disabled successfully.')

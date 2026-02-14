@@ -57,7 +57,7 @@ class BuildData(build):
                 raise Warning("gen_locales returned %d (%s)" % (rc, err))
         except Exception as e:
             _LOGGER.error("Building locales failed.")
-            _LOGGER.error("Error: %s" % str(e))
+            _LOGGER.error("Error: %s", str(e))
             sys.exit(1)
 
         # remove patch dir (if existing)
