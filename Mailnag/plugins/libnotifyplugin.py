@@ -32,7 +32,6 @@ import threading
 import re
 from subprocess import Popen, PIPE
 import logging
-import json
 import csv
 import copy
 from collections.abc import Callable
@@ -59,6 +58,8 @@ _LOGGER = logging.getLogger(__name__)
 
 DESKTOP_ENV_VARS_FOR_SUPPORT_TEST = ('XDG_CURRENT_DESKTOP', 'GDMSESSION')
 SUPPORTED_DESKTOP_ENVIRONMENTS = ("gnome", "cinnamon")
+
+RE_CODE = r'\b(?P<code>\d+)\b'
 
 cfg_2fa_providers_file = os.path.join(cfg_folder, '2fa_providers.tsv')
 
@@ -212,17 +213,14 @@ class LibNotifyPlugin(Plugin):
 		self._scrolled_window.set_propagate_natural_height(True)
 		self._scrolled_window.set_propagate_natural_width(True)
 		self._scrolled_window.set_max_content_height(348)
-		
+
 		return builder.get_object('box1')
 
 
 	@staticmethod
 	def _eval_2fa_providers(providers: list|str) -> list:
-		if isinstance(providers,list):
-			return providers
-		if not isinstance(providers,str):
-			return []
-		return eval(providers)
+		assert isinstance(providers,list), f'Oops! config still have invalid providers (type={type(providers).__name__})'
+		return providers
 
 	@staticmethod
 	def _check_2fa_provider_pattern(sender: str, subject: str, pattern: str) -> bool:
@@ -235,7 +233,7 @@ class LibNotifyPlugin(Plugin):
 				      pattern)
 		if ret:
 			try:
-				_cre = re.compile(pattern.replace('{code}', r'(?P<code>\d+)'))
+				_cre = re.compile(pattern.replace('{code}', RE_CODE))
 			except re.PatternError as e:
 				ret = False
 				posi = ''
@@ -255,10 +253,10 @@ class LibNotifyPlugin(Plugin):
 
 	def get_config(self):
 		config = super().get_config()
-		config['2fa_providers'] = self._load_2fa_provider_from_config(config)
+		config['2fa_providers'] = self._load_2fa_providers_from_config()
 		return config
 
-	def _load_2fa_provider_from_config(self, config):
+	def _load_2fa_providers_from_config(self):
 		lv = None
 		try:
 			with open(cfg_2fa_providers_file, 'r', encoding='utf-8') as fin:
@@ -275,7 +273,7 @@ class LibNotifyPlugin(Plugin):
 							values.append(v[k])
 				elif isinstance(v, list):
 					values = copy.deepcopy(v)
-					
+
 				if isinstance(values[0], str):
 					if values[0].lower() in ('y', 'yes', 'true', 'on'):
 						values[0] = True
@@ -284,10 +282,7 @@ class LibNotifyPlugin(Plugin):
 				if len(values) == len(_2fa_providers_keys):
 					providers.append(values)
 			return providers
-		
-		if '2fa_providers' in config:
-			return self._eval_2fa_providers(config['2fa_providers'])
-		
+
 		return copy.deepcopy(default_2fa_providers)
 
 	def load_ui_from_config(self, config_ui: Gtk.Widget) -> None:
@@ -301,7 +296,7 @@ class LibNotifyPlugin(Plugin):
 				_enabled = False
 			self._liststore_2FA_providers.append([_enabled, _sender, _subject, _pattern])
 
-	def _save_2fa_provider_to_config(self, providers):
+	def _save_2fa_providers_to_config(self, providers):
 		named_providers = []
 		for v in providers:
 			nv = dict()
@@ -323,7 +318,7 @@ class LibNotifyPlugin(Plugin):
 		providers = []
 		for row in self._liststore_2FA_providers:
 			providers.append(tuple(row))
-		self._save_2fa_provider_to_config(providers)
+		self._save_2fa_providers_to_config(providers)
 		if '2fa_providers' in config:
 			del config['2fa_providers']
 
@@ -465,7 +460,7 @@ class LibNotifyPlugin(Plugin):
 				continue
 
 			if _subject != subject and '{code}' in _subject:
-				_pattern = re.escape(_subject).replace(r'\{code\}', r'(?P<code>\d+)')
+				_pattern = re.escape(_subject).replace(r'\{code\}', RE_CODE)
 				m = re.match(_pattern, subject)
 
 				if m is None:
@@ -495,7 +490,7 @@ class LibNotifyPlugin(Plugin):
 						sender, subject)
 				return False
 
-			m = re.search(_pattern.replace('{code}', r'(?P<code>\d+)'), body)
+			m = re.search(_pattern.replace('{code}', RE_CODE), body)
 			if m is None:
 				continue
 
@@ -808,7 +803,9 @@ class LibNotifyPlugin(Plugin):
 		_enabled = b.get_object('enable').get_active()
 		_sender = b.get_object('sender').get_text()
 		_subject = b.get_object('subject').get_text()
-		_pattern = b.get_object('pattern_text_buffer').get_text()
+		start = b.get_object('pattern_text_buffer').get_start_iter()
+		end = b.get_object('pattern_text_buffer').get_end_iter()
+		_pattern = b.get_object('pattern_text_buffer').get_text(start, end, False)
 
 		if not self._check_2fa_provider_pattern(_sender, _subject, _pattern) and _enabled:
 			_enabled = False
