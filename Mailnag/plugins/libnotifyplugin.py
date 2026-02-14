@@ -563,13 +563,19 @@ class LibNotifyPlugin(Plugin):
 
 		assert code is not None
 
-		n = self._get_notification(sender, f'{subject}: {code}', "mail-unread")
+		_summary = f"🔑 {code} — {sender}"
+		_body = f'\t\t<i>{subject}</i>' if self._is_supported_env else f'\t\t{subject}'
+
+		n = self._get_notification(_summary,
+					   _body,
+					   "security-medium")
+
 		n.set_timeout(Notify.EXPIRES_NEVER)
 		n.set_urgency(Notify.Urgency.CRITICAL)
 
 		notification_id = str(id(n))
 		if self._is_supported_env:
-			n.add_action("copy-code", _("📋 Code: {0}").format(code),
+			n.add_action("copy-code", f'📋 {_("Copy code:")} {code}',
 				     self._notification_action_handler, (mail, notification_id, code))
 		n.show()
 		self._record_mail_notification(mail, n)
@@ -680,7 +686,7 @@ class LibNotifyPlugin(Plugin):
 					self._copy_commands.insert(0, successful_cmd)
 					break
 			except TimeoutExpired:
-				_LOGGER.warning("Timeout expired with %s, .", cmd[0])
+				_LOGGER.warning("Timeout expired with %s.", cmd[0])
 				if pipe:
 					pipe.kill() # Important : kill the blocking process
 					pipe.wait()
