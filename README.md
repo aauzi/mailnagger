@@ -146,6 +146,7 @@ cp ~/.mailnag/mailnag.cfg ~/.config/mailnag/
 ### Installation
 ```bash
 pipx install mailnagger
+```
 
 ## Configuration 
 
