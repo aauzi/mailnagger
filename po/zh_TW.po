@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: mailnag\n"
 "Report-Msgid-Bugs-To: https://github.com/tikank/mailnagger/issues\n"
-"POT-Creation-Date: 2026-02-11 23:22+0100\n"
+"POT-Creation-Date: 2026-02-15 02:03+0100\n"
 "PO-Revision-Date: 2019-03-16 14:48+0000\n"
 "Last-Translator: Launchpad Translations Administrators <Unknown>\n"
 "Language-Team: Chinese (Traditional) <zh_TW@li.org>\n"
@@ -128,84 +128,100 @@ msgid ""
 "followed by %s sequences."
 msgstr ""
 
-#: Mailnag/plugins/libnotifyplugin.py:74
+#: Mailnag/plugins/libnotifyplugin.py:75
 msgid "Your Security Passcode"
 msgstr ""
 
-#: Mailnag/plugins/libnotifyplugin.py:143
+#: Mailnag/plugins/libnotifyplugin.py:149
 msgid "LibNotify Notifications"
 msgstr "彈出視窗通知"
 
-#: Mailnag/plugins/libnotifyplugin.py:144
+#: Mailnag/plugins/libnotifyplugin.py:150
 msgid "Shows a popup when new mails arrive."
 msgstr "當新郵件到達時彈出訊息視窗。"
 
-#: Mailnag/plugins/libnotifyplugin.py:186
+#: Mailnag/plugins/libnotifyplugin.py:192
 msgid "Notification mode:"
 msgstr "通知模式"
 
-#: Mailnag/plugins/libnotifyplugin.py:188
+#: Mailnag/plugins/libnotifyplugin.py:194
 msgid "2FA providers"
 msgstr ""
 
-#: Mailnag/plugins/libnotifyplugin.py:391
-#: Mailnag/plugins/libnotifyplugin.py:427
-#: Mailnag/plugins/libnotifyplugin.py:577
+#: Mailnag/plugins/libnotifyplugin.py:241
+#, python-brace-format
+msgid "Missing \"code\" group pattern: {code}"
+msgstr ""
+
+#: Mailnag/plugins/libnotifyplugin.py:260
+#, python-format
+msgid "%s is incorrect regexp"
+msgstr ""
+
+#: Mailnag/plugins/libnotifyplugin.py:264
+#: Mailnag/plugins/libnotifyplugin.ui.h:8
+#, fuzzy
+msgid "Subject"
+msgstr "主題"
+
+#: Mailnag/plugins/libnotifyplugin.py:267
+#: Mailnag/plugins/libnotifyplugin.ui.h:9
+msgid "Pattern"
+msgstr ""
+
+#: Mailnag/plugins/libnotifyplugin.py:443
+#: Mailnag/plugins/libnotifyplugin.py:481
+#: Mailnag/plugins/libnotifyplugin.py:633
 #, python-brace-format
 msgid "{0} new mails"
 msgstr "{0} 封新郵件"
 
-#: Mailnag/plugins/libnotifyplugin.py:393
+#: Mailnag/plugins/libnotifyplugin.py:445
 #, python-brace-format
 msgid "from {0} and others."
 msgstr ""
 
-#: Mailnag/plugins/libnotifyplugin.py:395
-#: Mailnag/plugins/libnotifyplugin.py:398
+#: Mailnag/plugins/libnotifyplugin.py:447
+#: Mailnag/plugins/libnotifyplugin.py:450
 #, python-brace-format
 msgid "from {0}."
 msgstr ""
 
-#: Mailnag/plugins/libnotifyplugin.py:397
-#: Mailnag/plugins/libnotifyplugin.py:429
-#: Mailnag/plugins/libnotifyplugin.py:579
+#: Mailnag/plugins/libnotifyplugin.py:449
+#: Mailnag/plugins/libnotifyplugin.py:483
+#: Mailnag/plugins/libnotifyplugin.py:635
 msgid "New mail"
 msgstr "新郵件"
 
-#: Mailnag/plugins/libnotifyplugin.py:422
-#: Mailnag/plugins/libnotifyplugin.py:424
+#: Mailnag/plugins/libnotifyplugin.py:476
 #, python-brace-format
 msgid "(and {0} more)"
 msgstr "（ 還有 {0} 條）"
 
-#: Mailnag/plugins/libnotifyplugin.py:522
-#, python-brace-format
-msgid "📋 Code: {0}"
+#: Mailnag/plugins/libnotifyplugin.py:578
+msgid "Copy code:"
 msgstr ""
 
-#: Mailnag/plugins/libnotifyplugin.py:566
+#: Mailnag/plugins/libnotifyplugin.py:622
 msgid "Mark as read"
 msgstr "標記爲已讀"
 
-#: Mailnag/plugins/libnotifyplugin.py:765
+#: Mailnag/plugins/libnotifyplugin.py:837
 #, fuzzy
 msgid "Delete this provider:"
 msgstr "刪除該帳戶："
 
-#: Mailnag/plugins/libnotifyplugin.py:766
-#: Mailnag/plugins/libnotifyplugin.ui.h:15
+#: Mailnag/plugins/libnotifyplugin.py:838
 #, fuzzy
 msgid "Sender:"
 msgstr "寄件人"
 
-#: Mailnag/plugins/libnotifyplugin.py:767
-#: Mailnag/plugins/libnotifyplugin.ui.h:16
+#: Mailnag/plugins/libnotifyplugin.py:839
 #, fuzzy
 msgid "Subject:"
 msgstr "主題"
 
-#: Mailnag/plugins/libnotifyplugin.py:768
-#: Mailnag/plugins/libnotifyplugin.ui.h:17
+#: Mailnag/plugins/libnotifyplugin.py:840
 msgid "Pattern:"
 msgstr ""
 
@@ -340,15 +356,6 @@ msgstr "每封新郵件通知一次"
 msgid "Sender"
 msgstr "寄件人"
 
-#: Mailnag/plugins/libnotifyplugin.ui.h:8
-#, fuzzy
-msgid "Subject"
-msgstr "主題"
-
-#: Mailnag/plugins/libnotifyplugin.ui.h:9
-msgid "Pattern"
-msgstr ""
-
 #: Mailnag/plugins/libnotifyplugin.ui.h:10
 msgid "Add 2FA Provider"
 msgstr ""
@@ -362,19 +369,61 @@ msgid "Edit 2FA Provider"
 msgstr ""
 
 #: Mailnag/plugins/libnotifyplugin.ui.h:13
+msgid "information"
+msgstr ""
+
+#: Mailnag/plugins/libnotifyplugin.ui.h:14
 #, fuzzy
 msgid "2FA notifications"
 msgstr "聲音通知"
 
-#: Mailnag/plugins/libnotifyplugin.ui.h:14
+#: Mailnag/plugins/libnotifyplugin.ui.h:15
 msgid "Enable/disable libnotify 2FA processing"
 msgstr ""
 
-#: Mailnag/plugins/libnotifyplugin.ui.h:18
+#: Mailnag/plugins/libnotifyplugin.ui.h:16
+msgid "Pattern regexp with {code} for capture."
+msgstr ""
+
+#: Mailnag/plugins/libnotifyplugin.ui.h:17
+msgid ""
+"Display name of a mail sender, \n"
+"if display name is not available, \n"
+"address spec can be used."
+msgstr ""
+
+#: Mailnag/plugins/libnotifyplugin.ui.h:21
+msgid ""
+"This field is not a regular expression, \n"
+"however it can contain a code which \n"
+"is materialised within braces, like \n"
+"this: {code}.\n"
+"\n"
+"Ex: Your security code: {code}"
+msgstr ""
+
+#: Mailnag/plugins/libnotifyplugin.ui.h:27
+msgid "Subject  (not a regexp but {code} for capture possible)"
+msgstr ""
+
+#: Mailnag/plugins/libnotifyplugin.ui.h:29
+msgid ""
+"This field can be a regular expression \n"
+"where the code is materialised within \n"
+"braces, like this: {code}.\n"
+"\n"
+"Ex: Your security code is:\\s?{code}"
+msgstr ""
+
+#: Mailnag/plugins/libnotifyplugin.ui.h:34
+msgid "Text"
+msgstr ""
+
+#: Mailnag/plugins/libnotifyplugin.ui.h:35
 msgid "Edit 2FA provider"
 msgstr ""
 
-#: Mailnag/plugins/libnotifyplugin.ui.h:19
+#: Mailnag/plugins/libnotifyplugin.ui.h:36
 #, fuzzy
 msgid "Enable provider"
 msgstr "已啓用"
