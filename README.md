@@ -18,35 +18,136 @@ If you like Mailnagger, please help to keep it going by [contributing code](http
 or [writing docs](https://github.com/tikank/mailnagger/tree/master/docs).
 
 
-## Installation
+## 🚀 Advanced Features (This Fork)
 
-Easiest way to install Mailnagger from
-[PyPI](https://pypi.org/project/mailnagger/) is to use
-[pipx](https://pypi.org/project/pipx/).
+This version of Mailnagger introduces several high-productivity enhancements and core engine improvements:
 
-Run
+### 🔑 Intelligent 2FA Detection & Power Summary
+* **Automatic Extraction**: The `libnotify` plugin scans incoming emails to detect Two-Factor Authentication (2FA) codes using customizable regex patterns.
+* **HTML Body Parsing**: Smart extraction of plain text from HTML emails to ensure 2FA patterns are matched accurately even in complex layouts.
+* **Urgency Handling**: 2FA notifications are treated with higher priority, ensuring they stay visible while the code is valid.
+* **Instant Visibility**: Extracted codes are injected directly into the notification title (e.g., `🔑 123456 — Garmin`).
+* **One-Click Copy**: A "Copy code" button is integrated into the notification, supporting **Wayland** (`wl-copy`) and **X11** (`xclip`, `xsel`).
+* **On-Demand Fetching**: Uses the new `fetch_text()` backend method to retrieve only the necessary data for parsing, saving bandwidth.
+* **Independent Notifications**: Each incoming mail generates a unique notification instance. Copying a 2FA code from one specific notification won't interfere with others, even during simultaneous bursts.
+* **Non-Blocking Fetch**: The 2FA extraction engine works asynchronously. Slow network responses from one mail server won't delay notifications from other accounts.
+* **Clipboard Persistence**: Copy actions are delegated to system-level utilities, ensuring codes remain available in your clipboard even after notifications are dismissed.
+
+### 🛡️ Robust GOA & OAuth2 Management
+* **Native GNOME Integration**: Deeply integrated with **GNOME Online Accounts (GOA)**.
+* **Automatic Token Refresh**: Implements `refresh_goa_token` to handle OAuth2 access token updates in the background, preventing connection drops for Gmail/Outlook.
+
+### 📊 Professional Logging System
+* **Granular Control**: Define log levels per module via the `[logger_levels]` section in `mailnag.cfg`.
+* **Safe Configuration**: Uses `dictConfig` with predefined `VALID_LEVELS` to ensure system stability even with custom log settings.
+
+---
+
+## ⚙️ Configuration
+
+### 1. Granular Logging Control (`mailnag.cfg`)
+
+You can now define the logging verbosity per module by adding a `[logger_levels]` section to your `~/.config/mailnag/mailnag.cfg`.
+
+```ini
+[logger_levels]
+# Set the global log level (DEBUG, INFO, WARNING, ERROR, or CRITICAL)
+root = INFO
+
+# Specific level for the 2FA extraction and GOA utilities
+Mailnag.common.utils = DEBUG
+
+# Specific level for the libnotify plugin (useful for regex debugging)
+Mailnag.plugins.libnotifyplugin = DEBUG
+
 ```
-    pipx install mailnagger
+
+* **Dynamic Loading**: The daemon validates these levels against a predefined list (`DEBUG`, `INFO`, `WARNING`, `ERROR`, `CRITICAL`) and applies them using `dictConfig`.
+* **Dual Output**: Logs are automatically routed to both standard output and the system journal via `/dev/log`.
+
+---
+
+### 2. 2FA Providers (`2fa_providers.tsv`)
+
+The extraction of security codes from incoming emails is managed via a Tab-Separated Values (TSV) file located at `~/.config/mailnag/2fa_providers.tsv`.
+
+| Column | Description |
+| --- | --- |
+| **enabled** | `True` or `False` to toggle detection for this service. |
+| **provider** | The display name of the service (e.g., Garmin, Microsoft). |
+| **subject** | The email subject pattern to match (supports the `{code}` placeholder). |
+| **text_re** | The Regex used to find the code in the email body (use `{code}` for the target). |
+
+---
+
+### 3. GNOME Online Accounts (GOA) Integration
+
+This fork provides deep integration with GNOME Online Accounts for robust authentication.
+
+* **Account Linking**: The system automatically maps your email and username to the corresponding GOA identity using `get_goa_account_id`.
+* **Automatic OAuth2 Refresh**: If a connection fails due to an expired session, `refresh_goa_token` silently fetches a new access token from the system, preventing manual re-authentication prompts.
+
+---
+
+## 🛠️ Developers &  "Under the Hood"
+
+* **Architecture**: Transitioned to **Abstract Base Classes (ABC)** for backends, ensuring a strict and stable interface.
+* **Reliability**: All backends now support **UID-based tracking** and the `fetch_text()` method.
+* **Standards**: Configuration management now follows **XDG Base Directory** specifications using `pathlib`.
+* **Resilience**: Improved socket error handling and auto-retry logic for IMAP/POP3 connections.
+* **Code Style**: Unified codebase using `_LOGGER` and strict **tab-indentation** (optimized for `tabsize 8`).
+
+If you are developing custom plugins or backends, please note the following core changes:
+
+* **Backend Interface**: The `list_messages()` method has been updated to yield a 4-tuple including the message **UID**: `(folder, message, uid, flags)`.
+* **Mandatory Method**: All backends must now implement `fetch_text()` to allow on-demand retrieval of the email body.
+
+## 🏗️ Build & Setup Improvements
+* **Robust Localization**: Improved `BuildData` class with explicit error handling and logging during translation compilation.
+* **Asset Integrity**: Fixed missing UI resources in the distribution package, ensuring `libnotifyplugin.ui` is correctly installed.
+* **Modern Packaging**: Updated `setup.py` to support high-resolution icons and standardized XDG desktop file locations.
+
+---
+
+## ⚠️ Technical Incompatibilities
+
+**Important:** This fork modifies the Mailnagger core. Its `libnotify` is **not compatible** with backends from the original `titank` repository due to the following changes:
+
+* **`fetch_text()` Method**: All mail backends now require a mandatory `fetch_text()` function.
+* **Modified Signatures**: Backend methods like `list_messages` now return additional data (such as UIDs), making them incompatible with older core versions.
+
+---
+
+## 🔄 Migration Note (Standard Compliance)
+
+This fork now follows the **XDG Base Directory Specification**. 
+Config files have moved from `~/.mailnag` to `~/.config/mailnag`.
+
+If you are upgrading from an older version, you can migrate your settings manually:
+
+```bash
+mkdir -p ~/.config/mailnag
+cp ~/.mailnag/mailnag.cfg ~/.config/mailnag/
+# Optional: Move your custom rules/scripts if you have any
 ```
-though make sure the requirements stated below are met.
+## 📋 Requirements & Installation
 
+### Core Dependencies
+* **Python** (>= 3.10) - *Mandatory for modern type syntax.*
+* **pyxdg** - *Mandatory for XDG directory support.*
+* **PyGObject / GLib / gir-notify** - *For system notifications and UI.*
+* **dbus-python** - *For communication with GOA and desktop services.*
 
-### Requirements
+### Optional (Feature-Specific)
+* **2FA Clipboard**: `wl-clipboard` (Wayland) or `xclip/xsel` (X11).
+* **Secure Storage**: `libsecret` / `gir1.2-secret-1`.
+* **Translations**: `gettext` (only for building from source).
 
-* python (>= 3.9)
-* pygobject
-* gir-notify (>= 0.7.6)
-* gir-gtk-3.0
-* gir-gdkpixbuf-2.0
-* gir-glib-2.0
-* gir-gst-plugins-base-1.0
-* python-dbus
-* pyxdg
-* gettext
-* gir1.2-secret-1 (optional)
+### Installation
+```bash
+pipx install mailnagger
 
-
-## Configuration
+## Configuration 
 
 Run `mailnagger-config` to setup Mailnagger.
 

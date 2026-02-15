@@ -1,7 +1,7 @@
 Mailnagger news
 ===============
 
-Version 2.4.0.dev0 (not released)
+Version 2.4.0.dev1 (not released)
 =================================
 
 Fixes
@@ -11,6 +11,28 @@ Fixes
 New features
 ------------
 
+
+Version 2.4.0.aau0 (not released)
+=================================
+
+Fixes
+-----
+* Improved IMAP/POP3 connection reliability and socket handling.
+* Fixed missing UI assets in distribution packages.
+* Enhanced translation build process with explicit error logging.
+
+New features
+------------
+* Added 2FA code extraction from emails with "Copy" button in notifications.
+* Integrated support for wl-copy, xclip, and xsel.
+* Migrated configuration to XDG standard path (~/.config/mailnag/).
+* Improved GOA integration with automatic OAuth2 token refresh.
+* Added granular per-module log level configuration.
+* Updated backend API (ABC classes, UID tracking, mandatory fetch_text).
+
+NOTES:
+* Binaries are renamed to mailnagger and mailnagger-config. [cite: 7]
+* Manual migration of mailnag.cfg from ~/.mailnag/ to ~/.config/mailnag/ is required.
 
 Version 2.3.1 (2024-12-06)
 ==========================
